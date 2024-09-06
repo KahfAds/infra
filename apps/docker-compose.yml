@@ -1,0 +1,165 @@
+volumes:
+  www-volume:
+
+services:
+  www:
+    container_name: www
+    build:
+      context: ./www
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    volumes:
+      - www-volume:/www/website
+
+
+  api:
+    container_name: api
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    environment:
+      - REDIS_HOST=keydb-1
+    depends_on:
+      - keydb-1
+      - keydb-2
+
+  nginx:
+    container_name: nginx-app
+    hostname: web
+    build:
+      context: ./nginx-app
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+      - "443:443"    
+      - "8080:8080"
+    environment:
+      - API_IP=api
+      - API_PORT=8000
+      - DOMAIN=mahfil.net
+    volumes:
+      - ./tmp/nginx:/var/log/nginx:rw
+      
+      - ./www/website:/www:ro,rslave
+      # - www-volume:/www:ro,rslave
+
+      # - ./azure/tofu/certs/kahfkids.com-fullchain.pem:/etc/ssl/certs/kahfkids.com-fullchain.pem
+      #- ./azure/tofu/certs/kahfkids.com-privkey.pem:/etc/ssl/private/kahfkids.com-privkey.pem
+    depends_on:
+      - api
+    links:
+      - api
+
+  keydb-1:
+    image: eqalpha/keydb
+    hostname: keydb-1
+    command: keydb-server --maxmemory 500mb --maxmemory-policy allkeys-lru --active-replica yes --multi-master yes --replicaof keydb-2 6379 --multi-master-no-forward yes --server-threads 4
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+  keydb-2:
+    image: eqalpha/keydb
+    hostname: keydb-2
+    command: keydb-server --maxmemory 500mb --maxmemory-policy allkeys-lru --active-replica yes --multi-master yes --replicaof keydb-1 6379 --multi-master-no-forward yes --server-threads 4
+    restart: unless-stopped
+
+
+
+############## Monitoring ##############
+
+
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:1.3.0
+    container_name: nginx_exporter
+    hostname: nginxexporter
+    ports:
+      - "9113:9113"
+    command:
+      - --nginx.scrape-uri=http://web:8080/stub_status
+    depends_on:
+      - nginx
+
+  prometheus:
+    build: ./monitor/prometheus
+    container_name: prometheus
+    hostname: prometheus
+    image: prometheus
+    environment:
+      - SERVER_IPS=['docker.for.mac.localhost:9100']
+      - DOCKER_IPS=['dockerexporter:9323']
+      - NGINX_IPS=['nginxexporter:9113']
+      - PROMETHEUS_ARGS=--log.level=debug
+    ports:
+      - 9090:9090
+    restart: unless-stopped
+    volumes:
+      - ./tmp/data:/prometheus
+    
+  grafana:
+    build: ./monitor/grafana
+    container_name: grafana
+    hostname: grafana
+    volumes:
+      - ./tmp/grafana:/var/lib/grafana
+    environment:
+      - PROMETHEUS_URL=http://prometheus:9090
+      - LOKI_URL=http://loki:3100
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+    external_links:
+      - prometheus
+
+  monitor-nginx:
+    build: ./monitor/nginx
+    container_name: monitor_nginx
+    hostname: monitor
+    ports:
+      - "8081:80"
+      - "8443:443"
+    external_links:
+      - prometheus
+      - grafana
+    restart: unless-stopped
+    environment:
+      - PROMETHEUS_IP=prometheus
+      - GRAFANA_IP=grafana
+      - PROMETHEUS_DNS=prometheus.mahfil.net
+      - GRAFANA_DNS=grafana.mahfil.net
+
+  loki:
+    build: ./monitor/loki
+    hostname: loki
+    container_name: loki
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./tmp/loki/chunks:/loki/chunks
+      - ./tmp/loki/rules:/loki/rules
+    restart: unless-stopped
+
+  promtail-nginx:
+    build: ./monitor/promtail
+    container_name: promtail_nginx
+    restart: unless-stopped
+    environment:
+      - LOKI_URL=http://loki:3100/loki/api/v1/push
+      - JOB_NAME=nginx
+      - HOSTNAME=web
+      - ENABLE_SYSLOGS=true
+      - ENABLE_DOCKER=true
+      - ENABLE_NGINX=true
+    volumes:
+      - /var/log/syslog:/syslog:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./tmp/positions:/positions
+      - ./tmp/nginx:/nginxlog:ro
+    external_links:
+      - prometheus
+      - grafana
+      - loki
+    depends_on:
+      - nginx

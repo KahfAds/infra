@@ -20,11 +20,6 @@ services:
     ports:
       - "8000:8000"
     restart: unless-stopped
-    environment:
-      - REDIS_HOST=keydb-1
-    depends_on:
-      - keydb-1
-      - keydb-2
 
   nginx:
     container_name: nginx-app
@@ -42,29 +37,10 @@ services:
       - DOMAIN=mahfil.net
     volumes:
       - ./tmp/nginx:/var/log/nginx:rw
-      
-      - ./www/website:/www:ro,rslave
-      # - www-volume:/www:ro,rslave
-
-      # - ./azure/tofu/certs/kahfkids.com-fullchain.pem:/etc/ssl/certs/kahfkids.com-fullchain.pem
-      #- ./azure/tofu/certs/kahfkids.com-privkey.pem:/etc/ssl/private/kahfkids.com-privkey.pem
     depends_on:
       - api
     links:
       - api
-
-  keydb-1:
-    image: eqalpha/keydb
-    hostname: keydb-1
-    command: keydb-server --maxmemory 500mb --maxmemory-policy allkeys-lru --active-replica yes --multi-master yes --replicaof keydb-2 6379 --multi-master-no-forward yes --server-threads 4
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-  keydb-2:
-    image: eqalpha/keydb
-    hostname: keydb-2
-    command: keydb-server --maxmemory 500mb --maxmemory-policy allkeys-lru --active-replica yes --multi-master yes --replicaof keydb-1 6379 --multi-master-no-forward yes --server-threads 4
-    restart: unless-stopped
 
 
 

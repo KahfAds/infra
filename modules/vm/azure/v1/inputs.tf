@@ -21,7 +21,7 @@ variable "size" {
 variable "availability_set_id" {}
 
 
-variable "rsa_key_name" {
+variable "public_key" {
   type = string
 }
 
@@ -31,3 +31,22 @@ variable "custom_data" {
 }
 
 variable "subnet_id" {}
+
+variable "private_key_location" {}
+
+variable "remote_exec_scripts" {
+  type = list(string)
+  default = []
+}
+
+variable "local_exec_command" {
+  type = string
+  default = ""
+}
+
+variable "network_interface" {
+  type = object({
+    id = string
+    public_ip_address = string
+  })
+}

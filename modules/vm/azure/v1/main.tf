@@ -6,7 +6,7 @@ resource "azurerm_linux_virtual_machine" "this" {
   disable_password_authentication = true
   availability_set_id             = var.availability_set_id
 
-  network_interface_ids = [azurerm_network_interface.this.id]
+  network_interface_ids = [var.network_interface.id]
 
   # Uncomment this line to delete the OS disk automatically when deleting the VM
   # delete_os_disk_on_termination = true
@@ -33,33 +33,27 @@ resource "azurerm_linux_virtual_machine" "this" {
 
   admin_ssh_key {
     username = var.admin_username
-    public_key = file("${var.rsa_key_name}.pub")
+    public_key = var.public_key
   }
 
   custom_data = length(var.custom_data) > 0 ? base64encode(var.custom_data) : null
 
+  connection {
+    user = var.admin_username
+    type = "ssh"
+    host = var.network_interface.public_ip_address
+    private_key = file(var.private_key_location)
+  }
+
+  provisioner "remote-exec" {
+    scripts = var.remote_exec_scripts
+  }
+
+  provisioner "local-exec" {
+    command = var.local_exec_command
+  }
+
   tags = {
     environment = terraform.workspace
   }
-}
-
-resource "azurerm_network_interface" "this" {
-  name                = "${var.name_prefix}-vm-nic"
-  location            = var.location
-  resource_group_name = var.resource_group_name
-
-  ip_configuration {
-    name                          = "ipconfig1"
-    subnet_id                     = var.subnet_id
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.this.id
-  }
-}
-
-resource "azurerm_public_ip" "this" {
-  name                = "${var.name_prefix}-vm-public-ip"
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  allocation_method   = "Static"
-  sku                 = "Standard"
 }

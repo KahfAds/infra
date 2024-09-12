@@ -57,3 +57,7 @@ resource "azurerm_linux_virtual_machine" "this" {
     environment = terraform.workspace
   }
 }
+
+output "public_ip_address" {
+  value = var.network_interface.public_ip_address
+}

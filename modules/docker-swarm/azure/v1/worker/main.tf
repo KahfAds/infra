@@ -25,7 +25,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "node" {
   resource_group_name = var.resource_group_name
   location            = var.location
   sku                 = var.size
-  instances           = 1
+  instances           = var.scale.desired
   admin_username      = local.admin_username
 
   admin_ssh_key {

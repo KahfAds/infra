@@ -31,3 +31,17 @@ variable "custom_data" {
 }
 
 variable "join_command" {}
+
+variable "scale" {
+  type = object({
+    min = number
+    max = number
+    desired = number
+  })
+
+  default = {
+    min = 1
+    max = 2
+    desired = 2
+  }
+}

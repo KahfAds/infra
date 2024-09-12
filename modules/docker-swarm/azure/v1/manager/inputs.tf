@@ -15,7 +15,7 @@ variable "subnet" {
   })
 }
 
-variable "manager_0_private_ip" {}
+variable "private_ip_address" {}
 
 variable "network" {
   type = object({

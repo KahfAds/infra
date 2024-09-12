@@ -41,7 +41,7 @@ variable "remote_exec_scripts" {
 
 variable "local_exec_command" {
   type = string
-  default = ""
+  default = "/bin/sh"
 }
 
 variable "network_interface" {

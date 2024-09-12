@@ -15,10 +15,19 @@ variable "subnet" {
   })
 }
 
-variable "manager_0_private_ip" {}
-
 variable "network" {
   type = object({
     prefix = string
   })
 }
+
+variable "size" {
+  default = "Standard_B2s"
+}
+
+variable "custom_data" {
+  type = string
+  default = ""
+}
+
+variable "join_command" {}

@@ -6,6 +6,7 @@ module "manager" {
   private_ip_address = var.manager_0_private_ip
   resource_group_name = var.resource_group_name
   subnet = var.subnet
+  docker_secrets = var.docker_secrets
 }
 
 module "worker" {

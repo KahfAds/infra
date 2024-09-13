@@ -7,6 +7,10 @@ terraform {
       source = "hashicorp/azurerm"
       version = "3.116.0"
     }
+    ssh = {
+      source = "loafoe/ssh"
+      version = "2.7.0"
+    }
   }
 }
 

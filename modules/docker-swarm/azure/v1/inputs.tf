@@ -22,3 +22,9 @@ variable "network" {
     prefix = string
   })
 }
+
+variable "docker_secrets" {
+  type = map(string)
+  default = {}
+  sensitive = true
+}

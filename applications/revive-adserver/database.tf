@@ -70,3 +70,14 @@ resource "azurerm_postgresql_flexible_server" "this" {
     ]
   }
 }
+
+resource "azurerm_postgresql_flexible_server_database" "revive_ad_server" {
+  name      = "revive-adserver"
+  server_id = azurerm_postgresql_flexible_server.this.id
+  collation = "en_US.utf8"
+  charset   = "utf8"
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}

@@ -4,6 +4,5 @@ PRIVATE_IP=$(curl -s -H Metadata:true --noproxy "*" "http://169.254.169.254/meta
 
 # Start Swarm
 echo "Starting swarm init..."
-sudo docker swarm init \
---listen-addr "$PRIVATE_IP" \
+docker swarm init \
 --advertise-addr "$PRIVATE_IP"

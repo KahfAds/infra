@@ -28,7 +28,7 @@ provider "docker" {
 resource "docker_image" "this" {
   name = "proxy:1.0"
   build {
-    context = "${abspath(path.module)}/"
+    context = "${path.module}/"
     no_cache = true
   }
   platform = "linux/amd64"

@@ -20,3 +20,7 @@ module "swarm_cluster" {
     DB_NAME = azurerm_postgresql_flexible_server_database.revive_ad_server.name
   }
 }
+
+output "join_command" {
+  value = module.swarm_cluster.join_command
+}

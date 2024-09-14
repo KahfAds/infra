@@ -6,8 +6,8 @@ output "public_key" {
   value = azurerm_ssh_public_key.this.public_key
 }
 
-output "private_key_location" {
-  value = pathexpand("~/.ssh/${azurerm_ssh_public_key.this.name}.pem")
+output "private_key_pem" {
+  value = tls_private_key.this.private_key_pem
 }
 
 output "private_key_openssh" {

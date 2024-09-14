@@ -42,7 +42,7 @@ resource "azurerm_linux_virtual_machine" "this" {
     user = var.admin_username
     type = "ssh"
     host = var.network_interface.public_ip_address
-    private_key = file(var.private_key_location)
+    private_key = var.private_key_pem
   }
 
   provisioner "remote-exec" {

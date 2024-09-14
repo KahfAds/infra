@@ -4,7 +4,7 @@ output "worker_join_command" {
 
 output "ssh" {
   value = {
-    file = module.ssh_key.private_key_location
+    private_key_pem = module.ssh_key.private_key_pem
     username = local.admin_username
     ip_address = module.node.public_ip_address
   }

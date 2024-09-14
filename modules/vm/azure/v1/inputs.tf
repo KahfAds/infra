@@ -32,7 +32,7 @@ variable "custom_data" {
 
 variable "subnet_id" {}
 
-variable "private_key_location" {}
+variable "private_key_pem" {}
 
 variable "remote_exec_scripts" {
   type = list(string)

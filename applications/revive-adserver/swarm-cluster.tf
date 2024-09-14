@@ -19,4 +19,5 @@ module "swarm_cluster" {
     DB_PORT = 5432
     DB_NAME = azurerm_postgresql_flexible_server_database.revive_ad_server.name
   }
+  registry = local.registry
 }

@@ -32,3 +32,11 @@ variable "docker_secrets" {
 variable "size" {
   default = "Standard_B2s"
 }
+
+variable "registry" {
+  type = object({
+    address  = string
+    username = string
+    password = string
+  })
+}

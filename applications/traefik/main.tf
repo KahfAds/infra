@@ -46,16 +46,36 @@ provider "docker" {
   key_material = var.docker.key
 }
 
-resource "docker_service" "this" {
+resource "docker_service" "traefik" {
   provider = docker.remote
 
-  name = "proxy"
+  name = "traefik"
   mode {
     global = true
   }
+
+  labels {
+    label = "traefik.enable"
+    value = "true"
+  }
+
+  labels {
+    label = "traefik.http.services.traefik.loadbalancer.server.port"
+    value = "8080"
+  }
+
   task_spec {
     container_spec {
       image = docker_image.this.name
+      args = [
+        "--log.level=DEBUG",
+        "--accesslog=true",
+        "--api=true",
+        "--api.dashboard=true",
+        "--api.insecure=true",
+        "--entrypoints.web.address=:80",
+        "--entrypoints.websecure.address=:443"
+      ]
       mounts {
         source = "/var/run/docker.sock"
         target = "/var/run/docker.sock"
@@ -63,22 +83,21 @@ resource "docker_service" "this" {
         read_only = true
       }
     }
-    placement {
-      constraints = [
-        "node.role==manager"
-      ]
-      prefs = [
-        "spread=node.role.manager",
-      ]
-      max_replicas = 1
-    }
   }
+
   endpoint_spec {
     ports {
       name = "web"
       protocol = "tcp"
       target_port = 80
       published_port = 80
+      publish_mode = "ingress"
+    }
+    ports {
+      name = "api"
+      protocol = "tcp"
+      target_port = 8080
+      published_port = 8080
       publish_mode = "ingress"
     }
   }

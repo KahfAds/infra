@@ -81,6 +81,7 @@ resource "azurerm_linux_virtual_machine" "primary" {
       # Step 4: Install Docker and start swarm
       "sudo apt-get update",
       "sudo apt-get install -y docker.io uidmap jq",
+      "sudo docker login ${var.registry.address} -u ${var.registry.username} -p ${var.registry.password}",
       # Configure firewall to enable Docker Swarm ports
       "yes | sudo ufw enable",
       "sudo ufw allow 22/tcp",

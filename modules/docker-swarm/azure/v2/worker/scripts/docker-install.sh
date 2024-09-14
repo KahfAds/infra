@@ -2,6 +2,7 @@
 
 # Install Docker
 sudo apt-get update && sudo apt-get install -y docker.io uidmap jq
+sudo docker login ${address} -u ${username} -p ${password}
 sudo loginctl enable-linger azure-user
 
 # Configure firewall to enable Docker Swarm ports

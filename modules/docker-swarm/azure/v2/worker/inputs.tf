@@ -45,3 +45,11 @@ variable "scale" {
     desired = 2
   }
 }
+
+variable "registry" {
+  type = object({
+    address  = string
+    username = string
+    password = string
+  })
+}

@@ -21,6 +21,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "node" {
   name                = "${var.name_prefix}-vmss"
   custom_data         = base64encode(templatefile("${path.module}/scripts/docker-install.sh", {
     JOIN_COMMAND = "sudo ${var.join_command}"
+    address = var.registry.address
+    username = var.registry.username
+    password = var.registry.password
   }))
   resource_group_name = var.resource_group_name
   location            = var.location

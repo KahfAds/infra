@@ -3,14 +3,14 @@ resource "tls_private_key" "this" {
   rsa_bits  = 4096
 }
 
-### in multi computer situation this file requirement creates a lots of problem.
+### in multi computer situation this file requirement creates a lots of problem. don't reference it outside. just use in console.
 
-# resource "local_sensitive_file" "this" {
-#   filename = pathexpand("~/.ssh/${azurerm_ssh_public_key.this.name}.pem")
-#   file_permission = "600"
-#   directory_permission = "700"
-#   content = tls_private_key.this.private_key_pem
-# }
+resource "local_sensitive_file" "this" {
+  filename = pathexpand("~/.ssh/${azurerm_ssh_public_key.this.name}.pem")
+  file_permission = "600"
+  directory_permission = "700"
+  content = tls_private_key.this.private_key_pem
+}
 
 resource "azurerm_ssh_public_key" "this" {
   name                = "${var.name_prefix}-ssh-key"

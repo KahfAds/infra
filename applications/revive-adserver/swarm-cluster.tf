@@ -1,6 +1,6 @@
 module "swarm_cluster" {
   depends_on = [module.core_network.vnet_id]
-  source              = "../../modules/docker-swarm/azure/v1"
+  source              = "../../modules/docker-swarm/azure/v2"
   location            = local.location
   manager_0_private_ip = cidrhost(local.subnets[0].prefix, 10)
   name_prefix         = "revive-adserver"

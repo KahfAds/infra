@@ -17,16 +17,16 @@ provider "docker" {
   }
 }
 
-# resource "docker_registry_image" "this" {
-#   name = docker_image.this.name
-#   keep_remotely = true
-#   triggers = {
-#     dockerfile = sha1(file("${path.module}/Dockerfile"))
-#   }
-# }
+resource "docker_registry_image" "this" {
+  name = docker_image.this.name
+  keep_remotely = true
+  triggers = {
+    dockerfile = sha1(file("${path.module}/Dockerfile"))
+  }
+}
 
 resource "docker_image" "this" {
-  name = "proxy:1.0"
+  name = "${var.registry.address}/infrastructure/proxy:1.0"
   build {
     context = "${path.module}/"
     no_cache = true

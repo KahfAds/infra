@@ -46,10 +46,16 @@ provider "docker" {
   key_material  = var.docker.key
 }
 
-resource "docker_service" "traefik" {
+resource "random_password" "basic_auth" {
+  length = 12
+  special = true
+  override_special = "_%@"
+}
+
+resource "docker_service" "this" {
   provider = docker.remote
 
-  name = "traefik"
+  name = "proxy"
   mode {
     global = true
   }
@@ -60,11 +66,44 @@ resource "docker_service" "traefik" {
   }
 
   labels {
-    label = "traefik.http.services.traefik.loadbalancer.server.port"
-    value = "8080"
+    label = "traefik.http.services.proxy.loadbalancer.server.port"
+    value = "9999"
+  }
+
+  labels {
+    label = "traefik.http.routers.dashboard.entrypoints"
+    value = "traefik"
+  }
+
+  labels { # if don't add this, then implicitly traefik adds rule "Host(`proxy`)" !!!
+    label = "traefik.http.routers.dashboard.rule"
+    value = "(PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
+  }
+
+  labels {
+    label = "traefik.http.routers.dashboard.service"
+    value = "api@internal"
+  }
+#
+  labels {
+    label = "traefik.http.routers.dashboard.middlewares"
+    value = "auth"
+  }
+#
+  labels {
+    label = "traefik.http.middlewares.auth.basicauth.users"
+    value = "admin:${random_password.basic_auth.bcrypt_hash}"
   }
 
   task_spec {
+    placement {
+      constraints = [
+        "node.role==manager",
+      ]
+      prefs = [
+        "spread=node.role.manager",
+      ]
+    }
     container_spec {
       image = "traefik:v3.1.2"
       args = [
@@ -72,11 +111,14 @@ resource "docker_service" "traefik" {
         "--accesslog=true",
         "--api=true",
         "--api.dashboard=true",
-        "--api.insecure=true",
+#         "--api.insecure=true",
         "--entrypoints.web.address=:80",
-        "--providers.swarm.endpoint=tcp://127.0.0.1:2377",
+        "--entrypoints.websecure.address=:443",
+        "--providers.swarm=true",
+        "--providers.swarm.exposedByDefault=false",
         "--providers.docker.endpoint=unix:///var/run/docker.sock",
         "--entryPoints.ping.address=:8082",
+        "--entryPoints.traefik.address=:8080",
         "--ping.entryPoint=ping"
       ]
       mounts {

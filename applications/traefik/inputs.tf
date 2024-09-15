@@ -14,3 +14,5 @@ variable "docker" {
     ca_cert = string
   })
 }
+
+variable "manager_private_ip" {}

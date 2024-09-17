@@ -10,8 +10,8 @@ resource "azurerm_subnet" "database" {
   name                 = "database-subnet"
   resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = module.core_network.vnet_name
-  address_prefixes = ["10.0.4.0/24"]
-  service_endpoints = ["Microsoft.Storage"]
+  address_prefixes     = ["10.0.4.0/24"]
+  service_endpoints    = ["Microsoft.Storage"]
   delegation {
     name = "fs"
     service_delegation {
@@ -24,22 +24,24 @@ resource "azurerm_subnet" "database" {
 }
 
 resource "azurerm_private_dns_zone" "database" {
-  name                = "revive-adserver.postgres.database.azure.com"
+  name                = "adserver.postgres.database.azure.com"
   resource_group_name = azurerm_resource_group.this.name
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "database" {
-  name                  = "revive-adserver.postgres.database.azure.com"
+  name                  = "database"
   private_dns_zone_name = azurerm_private_dns_zone.database.name
   virtual_network_id    = module.core_network.vnet_id
   resource_group_name   = azurerm_resource_group.this.name
-  depends_on = [azurerm_subnet.database]
+  depends_on            = [azurerm_subnet.database]
 }
 
 resource "azurerm_postgresql_flexible_server" "this" {
   name                = "revive-adserver"
   location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
+  delegated_subnet_id = azurerm_subnet.database.id
+  private_dns_zone_id = azurerm_private_dns_zone.database.id
 
   administrator_login    = local.database_user
   administrator_password = random_password.database.result
@@ -55,11 +57,10 @@ resource "azurerm_postgresql_flexible_server" "this" {
   public_network_access_enabled = false
 
   high_availability {
-    mode                      = "ZoneRedundant"
+    mode = "ZoneRedundant"
   }
 
   depends_on = [
-    azurerm_private_dns_zone_virtual_network_link.database,
     azurerm_private_dns_zone_virtual_network_link.database
   ]
 

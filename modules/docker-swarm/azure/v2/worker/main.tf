@@ -218,4 +218,28 @@ resource "azurerm_network_security_group" "node" {
     source_address_prefix      = var.network.prefix
     destination_address_prefix = var.network.prefix
   }
+
+  security_rule {
+    name                   = "Allow-DNS-TCP"
+    priority               = 1012
+    direction              = "Inbound"
+    access                 = "Allow"
+    protocol               = "Tcp"
+    source_port_range      = "*"
+    destination_port_range = "53"
+    source_address_prefix  = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                   = "Allow-DNS-UDP"
+    priority               = 1013
+    direction              = "Inbound"
+    access                 = "Allow"
+    protocol               = "Udp"
+    source_port_range      = "*"
+    destination_port_range = "53"
+    source_address_prefix  = "*"
+    destination_address_prefix = "*"
+  }
 }

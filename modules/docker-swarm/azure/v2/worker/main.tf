@@ -16,14 +16,20 @@ resource "azurerm_availability_set" "this" {
   platform_fault_domain_count = 2
 }
 
+resource "azurerm_user_assigned_identity" "this" {
+  name                = "${var.name_prefix}-identity"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+}
+
 resource "azurerm_linux_virtual_machine_scale_set" "node" {
+  depends_on = [azurerm_role_assignment.acr, azurerm_role_assignment.this]
   computer_name_prefix = var.name_prefix
   name                = "${var.name_prefix}-vmss"
-  custom_data         = base64encode(templatefile("${path.module}/scripts/docker-install.sh", {
-    JOIN_COMMAND = "sudo ${var.join_command}"
-    address = var.registry.address
-    username = var.registry.username
-    password = var.registry.password
+  custom_data         = base64encode(
+    templatefile("${path.module}/scripts/docker-install.sh", {
+      JOIN_COMMAND = "sudo ${var.join_command}"
+      accessible_registries = var.accessible_registries
   }))
   resource_group_name = var.resource_group_name
   location            = var.location
@@ -62,6 +68,18 @@ resource "azurerm_linux_virtual_machine_scale_set" "node" {
       subnet_id = var.subnet.id
     }
   }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.this.id]
+  }
+}
+
+resource "azurerm_role_assignment" "this" {
+  for_each             = var.roles
+  principal_id         = azurerm_user_assigned_identity.this.principal_id
+  role_definition_name = each.key
+  scope                = each.value
 }
 
 resource "azurerm_network_security_group" "node" {

@@ -33,10 +33,12 @@ variable "size" {
   default = "Standard_B2s"
 }
 
-variable "registry" {
-  type = object({
-    address  = string
-    username = string
-    password = string
-  })
+variable "accessible_registries" {
+  type = list(string) # [name]
+  default = []
+}
+
+variable "roles" {
+  type = map(string) # { role_definition_name = scope }
+  default = {}
 }

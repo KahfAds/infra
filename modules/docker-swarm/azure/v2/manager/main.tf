@@ -23,6 +23,12 @@ resource "azurerm_availability_set" "this" {
   platform_fault_domain_count = 2
 }
 
+resource "azurerm_user_assigned_identity" "this" {
+  name                = "${var.name_prefix}-identity"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+}
+
 resource "azurerm_linux_virtual_machine" "primary" {
   name                            = "${var.name_prefix}-vm"
   location                        = var.location
@@ -57,19 +63,24 @@ resource "azurerm_linux_virtual_machine" "primary" {
   admin_username = local.admin_username
 
   admin_ssh_key {
-    username = local.admin_username
+    username   = local.admin_username
     public_key = module.ssh_key.public_key
   }
 
   connection {
-    user = local.admin_username
-    type = "ssh"
-    host = azurerm_public_ip.primary.ip_address
+    user        = local.admin_username
+    type        = "ssh"
+    host        = azurerm_public_ip.primary.ip_address
     private_key = module.ssh_key.private_key_pem
   }
 
+  identity {
+    type = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.this.id]
+  }
+
   provisioner "remote-exec" {
-    inline = [
+    inline = concat([
       # Step 1: Create the cert directory
       "sudo mkdir -p /etc/docker/certs",
       # Step 1: Write CA certificate to the correct directory
@@ -81,8 +92,6 @@ resource "azurerm_linux_virtual_machine" "primary" {
       # Step 4: Install Docker and start swarm
       "sudo apt-get update",
       "sudo apt-get install -y docker.io uidmap jq",
-      "sudo docker login ${var.registry.address} -u ${var.registry.username} -p ${var.registry.password}",
-      # Configure firewall to enable Docker Swarm ports
       "yes | sudo ufw enable",
       "sudo ufw allow 22/tcp",
       "sudo ufw allow 2376/tcp",
@@ -100,12 +109,19 @@ resource "azurerm_linux_virtual_machine" "primary" {
       # Start docker swarm
       "PRIVATE_IP=$(curl -s -H Metadata:true --noproxy \"*\" \"http://169.254.169.254/metadata/instance?api-version=2021-02-01\" | jq -r \".network.interface[0].ipv4.ipAddress[0].privateIpAddress\")",
       "sudo docker swarm init --listen-addr \"$PRIVATE_IP\" --advertise-addr \"$PRIVATE_IP\""
-    ]
+    ], local.registry_login)
   }
 
   tags = {
     environment = terraform.workspace
   }
+}
+
+resource "azurerm_role_assignment" "this" {
+  for_each             = var.roles
+  principal_id         = azurerm_user_assigned_identity.this.principal_id
+  role_definition_name = each.key
+  scope                = each.value
 }
 
 data "external" "worker_join_command" {

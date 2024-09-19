@@ -16,7 +16,7 @@ resource "null_resource" "stack_deployment" {
         for registry_name in var.accessible_registries :
         "sudo az acr login --name ${lower(registry_name)}"
       ],
-      ["echo '${nonsensitive(base64decode(each.value))}' | sudo docker stack deploy --with-registry-auth --compose-file - ${each.key}"]
+      ["echo '${base64decode(each.value)}' | sudo docker stack deploy --with-registry-auth --compose-file - ${each.key}"]
     )
   }
 
@@ -30,6 +30,6 @@ resource "null_resource" "stack_deployment" {
     private_key = module.ssh_key.private_key_pem
     host        = azurerm_public_ip.primary.ip_address
     key         = each.key
-    compose_file_content = nonsensitive(base64decode(each.value))
+    compose_file_content = base64decode(each.value)
   }
 }

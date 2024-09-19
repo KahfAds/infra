@@ -4,9 +4,8 @@ output "password" {
 }
 
 output "service" {
-  depends_on = [docker_network.this]
   value = base64encode(templatefile("${path.module}/docker-compose.yaml",{
     password = sha1("admin")
-    network_name = docker_network.this.name
+    network_name = var.network_name
   }))
 }

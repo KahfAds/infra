@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Install Docker
-sudo apt-get update && sudo apt-get install -y docker.io uidmap jq
+sudo apt-get update && sudo apt-get install -y docker.io uidmap jq nfs-common
 sudo loginctl enable-linger azure-user
 
 # Configure firewall to enable Docker Swarm ports
@@ -23,7 +23,7 @@ sudo apt-get update
 sudo apt-get install -y azure-cli
 sudo az login --identity
 %{ for registry_name in accessible_registries ~}
-sudo az acr login --name ${registry_name} --identity
+sudo az acr login --name ${registry_name}
 %{ endfor ~}
 
 ${JOIN_COMMAND}

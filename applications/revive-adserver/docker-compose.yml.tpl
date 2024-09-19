@@ -43,7 +43,7 @@ services:
     deploy:
       labels:
         - traefik.enable=true
-        - traefik.http.routers.admin.rule=Host(`52.230.5.115`)
+        - traefik.http.routers.admin.rule=Host(`${SERVER_IP}`)
         - traefik.http.services.admin.loadbalancer.server.port=8080
       mode: replicated
       placement:

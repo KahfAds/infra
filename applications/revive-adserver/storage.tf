@@ -23,7 +23,7 @@ resource "azurerm_storage_account" "this" {
   account_replication_type      = "LRS"
   account_tier                  = "Standard"
   location                      = azurerm_resource_group.this.location
-  name                          = "reviveadserver02"
+  name                          = "kahfadsproduction"
   resource_group_name           = azurerm_resource_group.this.name
   account_kind                  = "StorageV2"
   nfsv3_enabled                 = true
@@ -75,51 +75,19 @@ resource "azurerm_private_dns_a_record" "nfs_dns_record" {
   records             = azurerm_private_endpoint.nfs_private_endpoint.*.private_service_connection.0.private_ip_address
 }
 
-
-resource "azurerm_storage_container" "admin_plugins" {
-  name                  = "admin-plugins"
+resource "azurerm_storage_container" "this" {
+  for_each = local.volumes
+  name                  = each.key
   storage_account_name  = azurerm_storage_account.this.name
   container_access_type = "private"
 }
 
-resource "azurerm_storage_container" "images" {
-  name                  = "images"
-  storage_account_name  = azurerm_storage_account.this.name
-  container_access_type = "private"
-}
-
-resource "azurerm_storage_container" "plugins" {
-  name                  = "plugins"
-  storage_account_name  = azurerm_storage_account.this.name
-  container_access_type = "private"
-}
-
-resource "azurerm_storage_container" "var" {
-  name                  = "var"
-  storage_account_name  = azurerm_storage_account.this.name
-  container_access_type = "private"
-}
-
-resource "azurerm_storage_blob" "var_cache" {
-  name                   = "cache/dummy.txt"
+resource "azurerm_storage_blob" "this" {
+  depends_on = [azurerm_storage_container.this]
+  for_each = local.uploads
+  name                   = each.key
   storage_account_name   = azurerm_storage_account.this.name
-  storage_container_name = azurerm_storage_container.var.name
-  type                   = "Block"
-  source                 = "${path.module}/dummy.txt"
-}
-
-resource "azurerm_storage_blob" "var_plugins_DataObjects" {
-  name                   = "plugins/DataObjects/dummy.txt"
-  storage_account_name   = azurerm_storage_account.this.name
-  storage_container_name = azurerm_storage_container.var.name
-  type                   = "Block"
-  source                 = "${path.module}/dummy.txt"
-}
-
-resource "azurerm_storage_blob" "var_plugins_recover" {
-  name                   = "plugins/recover/dummy.txt"
-  storage_account_name   = azurerm_storage_account.this.name
-  storage_container_name = azurerm_storage_container.var.name
+  storage_container_name = each.value
   type                   = "Block"
   source                 = "${path.module}/dummy.txt"
 }

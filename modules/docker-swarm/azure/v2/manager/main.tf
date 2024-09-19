@@ -84,14 +84,14 @@ resource "azurerm_linux_virtual_machine" "primary" {
       # Step 1: Create the cert directory
       "sudo mkdir -p /etc/docker/certs",
       # Step 1: Write CA certificate to the correct directory
-      "echo '${nonsensitive(tls_self_signed_cert.ca_cert.cert_pem)}' | sudo tee /etc/docker/certs/ca.pem",
+      "echo '${tls_self_signed_cert.ca_cert.cert_pem}' | sudo tee /etc/docker/certs/ca.pem",
       # Step 2: Write server certificate
-      "echo '${nonsensitive(tls_locally_signed_cert.server_cert.cert_pem)}' | sudo tee /etc/docker/certs/server-cert.pem",
+      "echo '${tls_locally_signed_cert.server_cert.cert_pem}' | sudo tee /etc/docker/certs/server-cert.pem",
       # Step 3: Write server private key
-      "echo '${nonsensitive(tls_private_key.server_key.private_key_pem)}' | sudo tee /etc/docker/certs/server-key.pem",
+      "echo '${tls_private_key.server_key.private_key_pem}' | sudo tee /etc/docker/certs/server-key.pem",
       # Step 4: Install Docker and start swarm
       "sudo apt-get update",
-      "sudo apt-get install -y docker.io uidmap jq",
+      "sudo apt-get install -y docker.io uidmap jq nfs-common",
       "yes | sudo ufw enable",
       "sudo ufw allow 22/tcp",
       "sudo ufw allow 2376/tcp",
@@ -108,7 +108,8 @@ resource "azurerm_linux_virtual_machine" "primary" {
       "sudo systemctl restart docker",
       # Start docker swarm
       "PRIVATE_IP=$(curl -s -H Metadata:true --noproxy \"*\" \"http://169.254.169.254/metadata/instance?api-version=2021-02-01\" | jq -r \".network.interface[0].ipv4.ipAddress[0].privateIpAddress\")",
-      "sudo docker swarm init --listen-addr \"$PRIVATE_IP\" --advertise-addr \"$PRIVATE_IP\""
+      "sudo docker swarm init --listen-addr \"$PRIVATE_IP\" --advertise-addr \"$PRIVATE_IP\"",
+      "sudo docker network create -d overlay ${var.default_docker_network}"
     ], local.registry_login)
   }
 

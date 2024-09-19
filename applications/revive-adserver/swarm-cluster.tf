@@ -18,11 +18,8 @@ module "swarm_cluster" {
   network = {
     prefix = module.core_network.vnet_address_space[0]
   }
-  docker_secrets = {
-#     DB_USERNAME = local.database_user
-#     DB_PASSWORD = random_password.database.result
-#     DB_HOST     = azurerm_private_dns_zone_virtual_network_link.database.name
-#     DB_PORT     = 5432
-#     DB_NAME     = azurerm_postgresql_flexible_server_database.revive_ad_server.name
+  deployed_stacks = {
+#     dmm = base64encode(file("${path.module}/docker-compose-dmm.yml"))
+#     revive-adserver = local.stack
   }
 }

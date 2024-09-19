@@ -1,5 +1,7 @@
 module "manager" {
   source = "./manager"
+
+  deployed_stacks = var.deployed_stacks
   location = var.location
   name_prefix = "${var.name_prefix}-docker-swarm-manager"
   network = var.network
@@ -11,15 +13,15 @@ module "manager" {
   docker_secrets = var.docker_secrets
 }
 
-module "worker" {
-  depends_on = [module.manager]
-  source = "./worker"
-  location = var.location
-  name_prefix = "${var.name_prefix}-docker-swarm-worker"
-  network = var.network
-  accessible_registries = var.accessible_registries
-  resource_group_name = var.resource_group_name
-  roles = var.roles
-  subnet = var.subnet
-  join_command = module.manager.worker_join_command
-}
+# module "worker" {
+#   depends_on = [module.manager]
+#   source = "./worker"
+#   location = var.location
+#   name_prefix = "${var.name_prefix}-docker-swarm-worker"
+#   network = var.network
+#   accessible_registries = var.accessible_registries
+#   resource_group_name = var.resource_group_name
+#   roles = var.roles
+#   subnet = var.subnet
+#   join_command = module.manager.worker_join_command
+# }

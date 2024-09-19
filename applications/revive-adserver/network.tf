@@ -1,5 +1,3 @@
-
-
 locals {
   subnets = [
     {
@@ -29,4 +27,7 @@ module "core_network" {
     environment = terraform.workspace
   }
   depends_on = [azurerm_resource_group.this]
+  subnet_service_endpoints = {
+    for subnet in local.subnets : subnet.name => ["Microsoft.Storage"]
+  }
 }

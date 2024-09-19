@@ -1,0 +1,46 @@
+services:
+  app:
+    image: reviveadserver.azurecr.io/revive-adserver-${ENV}/backend:latest
+    privileged: true
+    volumes:
+      - /dev/fuse:/dev/fuse
+    cap_add:
+      - SYS_ADMIN
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      AZURE_STORAGE_ACCOUNT: ${AZURE_STORAGE_ACCOUNT}
+      AZURE_STORAGE_ACCESS_KEY: ${AZURE_STORAGE_ACCESS_KEY}
+    deploy:
+      placement:
+        constraints:
+          - node.role==manager
+        preferences:
+          - spread: node.role.manager
+
+  admin:
+    image: reviveadserver.azurecr.io/revive-adserver-${ENV}/web-admin:latest
+    privileged: true
+    volumes:
+      - /dev/fuse:/dev/fuse
+    cap_add:
+      - SYS_ADMIN
+    depends_on:
+      - app
+    environment:
+      AZURE_STORAGE_ACCOUNT: ${AZURE_STORAGE_ACCOUNT}
+      AZURE_STORAGE_ACCESS_KEY: ${AZURE_STORAGE_ACCESS_KEY}
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.services.admin.loadbalancer.server.port=80
+        - traefik.http.routers.app.entrypoints=web
+      mode: replicated
+      placement:
+        constraints:
+          - node.role==manager
+        preferences:
+          - spread: node.role.manager

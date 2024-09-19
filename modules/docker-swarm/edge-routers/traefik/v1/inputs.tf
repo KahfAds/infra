@@ -15,4 +15,3 @@ variable "docker" {
   })
 }
 
-variable "manager_private_ip" {}

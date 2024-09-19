@@ -17,6 +17,8 @@ services:
       DB_NAME: ${DB_NAME}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+    networks:
+      - public
     volumes:
       - plugins:/app/plugins
       - admin-plugins:/app/www/admin/plugins
@@ -34,17 +36,21 @@ services:
     volumes:
       - plugins:/app/plugins
       - images:/app/www/images
+    networks:
+      - public
     depends_on:
       - app
     deploy:
       labels:
         - traefik.enable=true
-        - traefik.http.services.admin.loadbalancer.server.port=80
-        - traefik.http.routers.app.entrypoints=web
-        - traefik.http.routers.app.rule=Host(`52.230.5.115`)
+        - traefik.http.routers.admin.rule=Host(`52.230.5.115`)
+        - traefik.http.services.admin.loadbalancer.server.port=8080
       mode: replicated
       placement:
         constraints:
           - node.role==manager
         preferences:
           - spread: node.role.manager
+networks:
+  public:
+    external: true

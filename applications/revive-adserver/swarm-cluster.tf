@@ -20,6 +20,7 @@ module "swarm_cluster" {
   }
   deployed_stacks = {
 #     dmm = base64encode(file("${path.module}/docker-compose-dmm.yml"))
+    proxy = module.proxy.service
     revive-adserver = local.stack
   }
 }

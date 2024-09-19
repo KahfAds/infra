@@ -10,7 +10,14 @@ resource "null_resource" "stack_deployment" {
 
   provisioner "remote-exec" {
     when = create
-    inline = ["echo '${nonsensitive(base64decode(each.value))}' | sudo docker stack deploy --security-opt apparmor=unconfined --compose-file - ${each.key}"]
+    inline = concat(
+      ["sudo az login --identity"],
+      [
+        for registry_name in var.accessible_registries :
+        "sudo az acr login --name ${lower(registry_name)}"
+      ],
+      ["echo '${nonsensitive(base64decode(each.value))}' | sudo docker stack deploy --with-registry-auth --compose-file - ${each.key}"]
+    )
   }
 
   provisioner "remote-exec" {
@@ -19,10 +26,10 @@ resource "null_resource" "stack_deployment" {
   }
 
   triggers = {
-    user_name = local.admin_username
+    user_name   = local.admin_username
     private_key = module.ssh_key.private_key_pem
-    host = azurerm_public_ip.primary.ip_address
-    key = each.key
+    host        = azurerm_public_ip.primary.ip_address
+    key         = each.key
     compose_file_content = nonsensitive(base64decode(each.value))
   }
 }

@@ -13,7 +13,7 @@ resource "null_resource" "PremiumHns" {
 }
 
 resource "time_sleep" "wait_for_features" {
-  depends_on = [null_resource.AllowNfsV3]
+  depends_on      = [null_resource.AllowNfsV3]
   create_duration = "60s"
 }
 
@@ -27,14 +27,15 @@ resource "azurerm_storage_account" "this" {
   resource_group_name           = azurerm_resource_group.this.name
   account_kind                  = "StorageV2"
   nfsv3_enabled                 = true
-  is_hns_enabled                = true # Hierarchical Namespace enabled?
+  is_hns_enabled                = true
   public_network_access_enabled = true
   https_traffic_only_enabled    = false
 
   network_rules {
-    default_action = "Deny" # Revert to "Deny" After creating all the containers.
+    default_action             = "Deny" # Revert to "Deny" After creating all the containers.
     virtual_network_subnet_ids = module.core_network.vnet_subnets
-    ip_rules = ["114.130.184.62/26"]
+    ip_rules                   = ["114.130.184.62/26"]
+    bypass                     = ["Logging", "Metrics", "AzureServices"]
   }
 }
 
@@ -62,7 +63,7 @@ resource "azurerm_private_endpoint" "nfs_private_endpoint" {
     name                           = "blob-privateserviceconnection"
     private_connection_resource_id = azurerm_storage_account.this.id
     is_manual_connection           = false
-    subresource_names = ["blob"]
+    subresource_names              = ["blob"]
   }
 }
 

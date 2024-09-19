@@ -1,19 +1,27 @@
+volumes:
+%{ for volume in volumes ~}
+  ${volume}:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "nfsvers=3,addr=${AZURE_STORAGE_ACCOUNT_HOST},nolock,soft,rw"
+      device: ":/${AZURE_STORAGE_ACCOUNT}/${volume}"
+%{ endfor ~}
+
 services:
   app:
     image: reviveadserver.azurecr.io/revive-adserver-${ENV}/backend:latest
-    privileged: true
-    volumes:
-      - /dev/fuse:/dev/fuse
-    cap_add:
-      - SYS_ADMIN
     environment:
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
-      AZURE_STORAGE_ACCOUNT: ${AZURE_STORAGE_ACCOUNT}
-      AZURE_STORAGE_ACCESS_KEY: ${AZURE_STORAGE_ACCESS_KEY}
+    volumes:
+      - plugins:/app/plugins
+      - admin-plugins:/app/www/admin/plugins
+      - images:/app/www/images
+      - var:/app/var
     deploy:
       placement:
         constraints:
@@ -23,21 +31,17 @@ services:
 
   admin:
     image: reviveadserver.azurecr.io/revive-adserver-${ENV}/web-admin:latest
-    privileged: true
     volumes:
-      - /dev/fuse:/dev/fuse
-    cap_add:
-      - SYS_ADMIN
+      - plugins:/app/plugins
+      - images:/app/www/images
     depends_on:
       - app
-    environment:
-      AZURE_STORAGE_ACCOUNT: ${AZURE_STORAGE_ACCOUNT}
-      AZURE_STORAGE_ACCESS_KEY: ${AZURE_STORAGE_ACCESS_KEY}
     deploy:
       labels:
         - traefik.enable=true
         - traefik.http.services.admin.loadbalancer.server.port=80
         - traefik.http.routers.app.entrypoints=web
+        - traefik.http.routers.app.rule=Host(`52.230.5.115`)
       mode: replicated
       placement:
         constraints:

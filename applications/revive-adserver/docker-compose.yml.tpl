@@ -10,7 +10,7 @@ volumes:
 
 services:
   app:
-    image: reviveadserver.azurecr.io/revive-adserver-${ENV}/backend:latest
+    image: kahfads${ENV}.azurecr.io/revive-adserver/backend:latest
     environment:
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
@@ -32,7 +32,7 @@ services:
           - spread: node.role.manager
 
   admin:
-    image: reviveadserver.azurecr.io/revive-adserver-${ENV}/web-admin:latest
+    image: kahfads${ENV}.azurecr.io/revive-adserver/web-admin:latest
     volumes:
       - plugins:/app/plugins
       - images:/app/www/images

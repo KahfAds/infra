@@ -8,11 +8,6 @@ locals {
     var : ["cache/dummy.txt", "plugins/DataObjects/dummy.txt", "plugins/recover/dummy.txt"]
   }
 
-  uploads = {
-    for k, v in flatten([for key, paths in local.volumes : [for path in paths : { path = path, key = key }]]) :
-    v.path => v.key
-  }
-
   stack = base64encode(templatefile("docker-compose.yml.tpl", {
     DB_HOST                    = azurerm_private_dns_zone_virtual_network_link.database.name
     DB_PORT                    = 5432

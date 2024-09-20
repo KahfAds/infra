@@ -19,8 +19,4 @@ module "swarm_cluster" {
   network = {
     prefix = module.core_network.vnet_address_space[0]
   }
-  deployed_stacks = {
-    proxy           = module.proxy.service
-#     revive-adserver = local.stack
-  }
 }

@@ -34,7 +34,7 @@ resource "azurerm_storage_account" "this" {
   network_rules {
     default_action             = "Deny" # Revert to "Deny" After creating all the containers.
     virtual_network_subnet_ids = module.core_network.vnet_subnets
-    ip_rules                   = ["114.130.184.62/26"]
+    ip_rules                   = ["114.130.184.62/26", "103.29.60.7/26"]
     bypass                     = ["Logging", "Metrics", "AzureServices"]
   }
 }
@@ -80,6 +80,13 @@ resource "azurerm_storage_container" "this" {
   name                  = each.key
   storage_account_name  = azurerm_storage_account.this.name
   container_access_type = "private"
+}
+
+locals {
+  uploads = {
+    for k, v in flatten([for key, paths in local.volumes : [for path in paths : { path = path, key = key }]]) :
+    v.path => v.key
+  }
 }
 
 resource "azurerm_storage_blob" "this" {

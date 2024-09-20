@@ -23,11 +23,6 @@ variable "network" {
   })
 }
 
-variable "deployed_stacks" {
-  type = map(string) # { stack_name = base64encode(compose_file_content) }
-  default = {}
-}
-
 variable "docker_secrets" {
   type = map(string)
   default = {}

@@ -118,6 +118,60 @@ resource "azurerm_linux_virtual_machine" "primary" {
   }
 }
 
+resource "azurerm_linux_virtual_machine_scale_set" "replica" {
+  depends_on = [azurerm_role_assignment.acr, azurerm_role_assignment.this]
+  computer_name_prefix = var.name_prefix
+  name                = "${var.name_prefix}-vmss"
+  custom_data         = base64encode(
+    templatefile("${path.module}/scripts/docker-install.sh", {
+      JOIN_COMMAND = "sudo ${data.external.join_command.result.output}"
+      accessible_registries = var.accessible_registries
+    })
+  )
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  sku                 = var.size
+  instances           = var.replica
+  admin_username      = local.admin_username
+
+  admin_ssh_key {
+    username   = local.admin_username
+    public_key = module.ssh_key.public_key
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  os_disk {
+    caching              = "ReadOnly"
+    storage_account_type = "Standard_LRS"
+    diff_disk_settings {
+      option = "Local"
+    }
+  }
+
+  network_interface {
+    name    = "${var.name_prefix}-nic"
+    primary = true
+    network_security_group_id = azurerm_network_security_group.primary.id
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = var.subnet.id
+    }
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.this.id]
+  }
+}
+
 resource "azurerm_role_assignment" "this" {
   for_each             = var.roles
   principal_id         = azurerm_user_assigned_identity.this.principal_id

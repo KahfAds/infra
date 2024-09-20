@@ -47,3 +47,8 @@ variable "default_docker_network" {
   type = string
   default = "public"
 }
+
+variable "replica" {
+  type = number
+  default = 2
+}

@@ -11,12 +11,6 @@ volumes:
 services:
   app:
     image: kahfads${ENV}.azurecr.io/revive-adserver/backend:latest
-    environment:
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-      DB_NAME: ${DB_NAME}
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
     networks:
       - public
     volumes:
@@ -27,9 +21,9 @@ services:
     deploy:
       placement:
         constraints:
-          - node.role==manager
+          - node.role==worker
         preferences:
-          - spread: node.role.manager
+          - spread: node.role.worker
 
   admin:
     image: kahfads${ENV}.azurecr.io/revive-adserver/web-admin:latest
@@ -43,14 +37,14 @@ services:
     deploy:
       labels:
         - traefik.enable=true
-        - traefik.http.routers.admin.rule=Host(`${SERVER_IP}`)
+        - traefik.http.routers.admin.rule=Host(`${SERVER_ADDR}`)
         - traefik.http.services.admin.loadbalancer.server.port=8080
       mode: replicated
       placement:
         constraints:
-          - node.role==manager
+          - node.role==worker
         preferences:
-          - spread: node.role.manager
+          - spread: node.role.worker
 networks:
   public:
     external: true

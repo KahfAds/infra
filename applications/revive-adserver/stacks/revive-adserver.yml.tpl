@@ -20,7 +20,12 @@ services:
       - var:/app/var
     deploy:
       mode: replicated
-      replicas: 3
+      replicas: 1
+      placement:
+        constraints:
+          - node.role==manager
+        preferences:
+          - spread: node.role.manager
 
   admin:
     image: kahfads${ENV}.azurecr.io/revive-adserver/web-admin:latest
@@ -34,10 +39,17 @@ services:
     deploy:
       mode: replicated
       replicas: 1
+      placement:
+        constraints:
+          - node.role==manager
+        preferences:
+          - spread: node.role.manager
       labels:
         - traefik.enable=true
-        - traefik.http.routers.admin.entrypoints=web,websecure
+        - traefik.http.routers.admin.entrypoints=websecure
         - traefik.http.routers.admin.rule=(PathPrefix(`/www/admin`) || Host(`admin.kahfads.com`))
+        - traefik.http.routers.admin.tls=true
+        - traefik.http.routers.admin.tls.certresolver=letsEncrypt
         - traefik.http.services.admin.loadbalancer.server.port=8080
   delivery:
     image: kahfads${ENV}.azurecr.io/revive-adserver/web-delivery:latest
@@ -49,10 +61,18 @@ services:
       - app
     deploy:
       mode: replicated
-      replicas: 3
+      replicas: 1
+      placement:
+        constraints:
+          - node.role==manager
+        preferences:
+          - spread: node.role.manager
       labels:
         - traefik.enable=true
+        - traefik.http.routers.delivery.entrypoints=websecure
         - traefik.http.routers.delivery.rule=(PathPrefix(`/www/delivery`) || Host(`delivery.kahfads.com`))
+        - traefik.http.routers.delivery.tls=true
+        - traefik.http.routers.delivery.tls.certresolver=letsEncrypt
         - traefik.http.services.delivery.loadbalancer.server.port=8080
 networks:
   ${network_name}:

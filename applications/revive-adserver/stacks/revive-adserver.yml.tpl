@@ -20,12 +20,10 @@ services:
       - var:/app/var
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 4
       placement:
-        constraints:
-          - node.role==manager
         preferences:
-          - spread: node.role.manager
+          - spread: node.availability.active
 
   maintenance:
     image: kahfads${ENV}.azurecr.io/revive-adserver/backend:latest
@@ -62,9 +60,9 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.role==manager
+          - node.role==worker
         preferences:
-          - spread: node.role.manager
+          - spread: node.role.worker
       labels:
         - traefik.enable=true
         - traefik.http.routers.admin.entrypoints=websecure
@@ -86,9 +84,9 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.role==manager
+          - node.role==worker
         preferences:
-          - spread: node.role.manager
+          - spread: node.role.worker
       labels:
         - traefik.enable=true
         - traefik.http.routers.delivery.entrypoints=websecure

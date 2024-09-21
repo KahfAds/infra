@@ -27,6 +27,27 @@ services:
         preferences:
           - spread: node.role.manager
 
+  maintenance:
+    image: kahfads${ENV}.azurecr.io/revive-adserver/backend:latest
+    volumes:
+      - plugins:/app/plugins
+      - admin-plugins:/app/www/admin/plugins
+      - images:/app/www/images
+      - var:/app/var
+    command:
+      - /opt/bitnami/php/bin/php
+      - /app/scripts/maintenance/maintenance.php
+      - admin.kahfads.com
+    deploy:
+      mode: replicated
+      replicas: 0
+      restart_policy:
+        condition: none
+      labels:
+        - "swarm.cronjob.enable=true"
+        - "swarm.cronjob.schedule=1 * * * *"
+        - "swarm.cronjob.skip-running=true"
+
   admin:
     image: kahfads${ENV}.azurecr.io/revive-adserver/web-admin:latest
     volumes:
@@ -51,6 +72,7 @@ services:
         - traefik.http.routers.admin.tls=true
         - traefik.http.routers.admin.tls.certresolver=letsEncrypt
         - traefik.http.services.admin.loadbalancer.server.port=8080
+
   delivery:
     image: kahfads${ENV}.azurecr.io/revive-adserver/web-delivery:latest
     volumes:
@@ -74,6 +96,7 @@ services:
         - traefik.http.routers.delivery.tls=true
         - traefik.http.routers.delivery.tls.certresolver=letsEncrypt
         - traefik.http.services.delivery.loadbalancer.server.port=8080
+
 networks:
   ${network_name}:
     external: true

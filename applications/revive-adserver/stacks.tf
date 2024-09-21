@@ -1,14 +1,15 @@
 locals {
   stacks = {
-    swarm-cronjob    = local.stack_swarm_cronjob
     proxy           = local.stack_proxy
+    prune           = base64encode(file("${path.module}/stacks/prune-nodes.yaml"))
     revive-adserver = local.stack_revive_ad_server
+    swarm-cronjob   = base64encode(file("${path.module}/stacks/swarm-cronjob.yaml"))
   }
 }
 
 resource "null_resource" "stack_deployments" {
   depends_on = [module.swarm_cluster]
-  for_each = local.stacks
+  for_each   = local.stacks
   connection {
     user        = self.triggers.user_name
     type        = "ssh"
@@ -33,17 +34,17 @@ resource "null_resource" "stack_deployments" {
   }
 
   triggers = {
-    user_name   = module.swarm_cluster.ssh.username
-    private_key = module.swarm_cluster.ssh.private_key_pem
-    host        = module.swarm_cluster.ssh.ip_address
-    key         = each.key
+    user_name            = module.swarm_cluster.ssh.username
+    private_key          = module.swarm_cluster.ssh.private_key_pem
+    host                 = module.swarm_cluster.ssh.ip_address
+    key                  = each.key
     compose_file_content = base64decode(each.value)
   }
 }
 
 resource "null_resource" "stack_removal" {
   depends_on = [module.swarm_cluster]
-  for_each = local.stacks
+  for_each   = local.stacks
 
   connection {
     user        = self.triggers.user_name
@@ -53,7 +54,7 @@ resource "null_resource" "stack_removal" {
   }
 
   provisioner "remote-exec" {
-    when = destroy
+    when   = destroy
     inline = ["sudo docker stack rm ${each.key}"]
   }
 

@@ -1,7 +1,7 @@
 locals {
   stacks = {
-    proxy           = module.proxy.service
-    revive-adserver = local.stack
+    proxy           = local.stack_proxy
+    revive-adserver = local.stack_revive_ad_server
   }
 }
 

@@ -5,15 +5,17 @@ locals {
     admin-plugins : []
     images : []
     plugins : []
-    var : ["cache/dummy.txt", "plugins/DataObjects/dummy.txt", "plugins/recover/dummy.txt"]
+    var : ["cache/dummy.txt", "plugins/DataObjects/dummy.txt", "plugins/recover/dummy.txt"],
+    traefik : ["config/dummy.txt", "tls/dummy.txt"]
   }
 
-  stack = base64encode(templatefile("docker-compose.yml.tpl", {
+  stack_revive_ad_server = base64encode(templatefile("${path.module}/stacks/revive-adserver.yml.tpl", {
     ENV                        = "production"
+
+    network_name               = local.docker_network_name
     AZURE_STORAGE_ACCOUNT_HOST = "${azurerm_storage_account.this.name}.${azurerm_private_dns_zone.storage_blob_dns.name}"
     AZURE_STORAGE_ACCOUNT      = azurerm_storage_account.this.name
     volumes = keys(local.volumes)
-    SERVER_ADDR = module.swarm_cluster.docker.host
   }))
 
   docker_network_name = "public"

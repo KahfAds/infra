@@ -41,8 +41,8 @@ variable "scale" {
 
   default = {
     min = 1
-    max = 2
-    desired = 2
+    max = 3
+    desired = 3
   }
 }
 

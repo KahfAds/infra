@@ -50,5 +50,5 @@ variable "default_docker_network" {
 
 variable "replica" {
   type = number
-  default = 2
+  default = 0
 }

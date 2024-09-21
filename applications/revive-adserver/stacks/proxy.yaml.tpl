@@ -1,3 +1,13 @@
+volumes:
+%{ for volume in volumes ~}
+  ${volume}:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "nfsvers=3,addr=${AZURE_STORAGE_ACCOUNT_HOST},nolock,soft,rw"
+      device: ":/${AZURE_STORAGE_ACCOUNT}/${volume}"
+%{ endfor ~}
+
 services:
   proxy:
     image: traefik:v3.1.2
@@ -14,11 +24,15 @@ services:
       - "--entryPoints.ping.address=:8082"
       - "--entryPoints.traefik.address=:8080"
       - "--ping.entryPoint=ping"
+      - "--certificatesResolvers.letsEncrypt.acme.email=mazharul@kahf.co"
+      - "--certificatesResolvers.letsEncrypt.acme.storage=/traefik/tls/acme.json"
+      - "--certificatesResolvers.letsEncrypt.acme.httpChallenge.entryPoint=web"
     volumes:
       - type: bind
         source: /var/run/docker.sock
         target: /var/run/docker.sock
         read_only: true
+      - traefik:/traefik:rw
     ports:
       - target: 80
         published: 80

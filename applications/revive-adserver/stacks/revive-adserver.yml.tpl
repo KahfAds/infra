@@ -12,18 +12,15 @@ services:
   app:
     image: kahfads${ENV}.azurecr.io/revive-adserver/backend:latest
     networks:
-      - public
+      - ${network_name}
     volumes:
       - plugins:/app/plugins
       - admin-plugins:/app/www/admin/plugins
       - images:/app/www/images
       - var:/app/var
     deploy:
-      placement:
-        constraints:
-          - node.role==worker
-        preferences:
-          - spread: node.role.worker
+      mode: replicated
+      replicas: 3
 
   admin:
     image: kahfads${ENV}.azurecr.io/revive-adserver/web-admin:latest
@@ -31,20 +28,32 @@ services:
       - plugins:/app/plugins
       - images:/app/www/images
     networks:
-      - public
+      - ${network_name}
     depends_on:
       - app
     deploy:
+      mode: replicated
+      replicas: 1
       labels:
         - traefik.enable=true
-        - traefik.http.routers.admin.rule=Host(`${SERVER_ADDR}`)
+        - traefik.http.routers.admin.entrypoints=web,websecure
+        - traefik.http.routers.admin.rule=(PathPrefix(`/www/admin`) || Host(`admin.kahfads.com`))
         - traefik.http.services.admin.loadbalancer.server.port=8080
+  delivery:
+    image: kahfads${ENV}.azurecr.io/revive-adserver/web-delivery:latest
+    volumes:
+      - images:/app/www/images
+    networks:
+      - ${network_name}
+    depends_on:
+      - app
+    deploy:
       mode: replicated
-      placement:
-        constraints:
-          - node.role==worker
-        preferences:
-          - spread: node.role.worker
+      replicas: 3
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.delivery.rule=(PathPrefix(`/www/delivery`) || Host(`delivery.kahfads.com`))
+        - traefik.http.services.delivery.loadbalancer.server.port=8080
 networks:
-  public:
+  ${network_name}:
     external: true

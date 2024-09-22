@@ -65,11 +65,17 @@ services:
           - spread: node.role.worker
       labels:
         - traefik.enable=true
-        - traefik.http.routers.admin.entrypoints=websecure
-        - traefik.http.routers.admin.rule=(PathPrefix(`/www/admin`) || Host(`admin.kahfads.com`))
-        - traefik.http.routers.admin.tls=true
-        - traefik.http.routers.admin.tls.certresolver=letsEncrypt
+        - traefik.http.routers.admin-http.entrypoints=web
+        - traefik.http.routers.admin-http.rule=Host(`admin.kahfads.com`)
+        - traefik.http.routers.admin-http.middlewares=redirect-to-https
+        - traefik.http.routers.admin-https.entrypoints=websecure
+        - traefik.http.routers.admin-https.rule=Host(`admin.kahfads.com`)
+        - traefik.http.routers.admin-https.tls=true
+        - traefik.http.routers.admin-https.tls.certresolver=letsEncrypt
         - traefik.http.services.admin.loadbalancer.server.port=8080
+        - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+        - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
+
 
   delivery:
     image: kahfads${ENV}.azurecr.io/revive-adserver/web-delivery:latest

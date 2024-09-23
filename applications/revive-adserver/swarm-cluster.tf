@@ -7,7 +7,6 @@ module "swarm_cluster" {
   source = "../../modules/docker-swarm/azure/v2"
 
   accessible_registries = [azurerm_container_registry.revive_ad_server.name]
-  default_docker_network = local.docker_network_name
   location               = local.location
   manager_0_private_ip   = local.manager_0_private_ip
   name_prefix            = "revive-adserver"

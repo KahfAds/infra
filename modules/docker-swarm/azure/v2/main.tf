@@ -1,7 +1,6 @@
 module "manager" {
   source = "./manager"
 
-  default_docker_network = var.default_docker_network
   location = var.location
   name_prefix = "${var.name_prefix}-docker-swarm-manager"
   network = var.network

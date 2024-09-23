@@ -38,7 +38,3 @@ variable "roles" {
   type = map(string) # { role_definition_name = scope }
   default = {}
 }
-
-variable "default_docker_network" {
-  type = string
-}

@@ -108,8 +108,7 @@ resource "azurerm_linux_virtual_machine" "primary" {
       "sudo systemctl restart docker",
       # Start docker swarm
       "PRIVATE_IP=$(curl -s -H Metadata:true --noproxy \"*\" \"http://169.254.169.254/metadata/instance?api-version=2021-02-01\" | jq -r \".network.interface[0].ipv4.ipAddress[0].privateIpAddress\")",
-      "sudo docker swarm init --listen-addr \"$PRIVATE_IP\" --advertise-addr \"$PRIVATE_IP\"",
-      "sudo docker network create -d overlay --attachable ${var.default_docker_network}"
+      "sudo docker swarm init --default-addr-pool 172.16.0.0/12 --default-addr-pool-mask-length 24 --listen-addr \"$PRIVATE_IP\" --advertise-addr \"$PRIVATE_IP\""
     ], local.registry_login)
   }
 

@@ -64,8 +64,10 @@ services:
         - traefik.http.routers.dashboard.rule=(PathPrefix(`/api`) || PathPrefix(`/dashboard`))
         - traefik.http.routers.dashboard.service=api@internal
     networks:
-      - ${network_name}
+      - proxy
 networks:
   ${network_name}:
-    external: true
+    name: ${network_name}
+    driver: overlay
+    attachable: true
 

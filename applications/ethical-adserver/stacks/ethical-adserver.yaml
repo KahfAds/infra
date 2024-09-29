@@ -1,0 +1,88 @@
+volumes:
+  local_postgres_data: {}
+  local_postgres_data_backups: {}
+  local_metabase_data: {}
+
+services:
+  django:
+    image: kahfads${ENV}.azurecr.io/ethical-adserver/backend:latest
+    depends_on:
+      - postgres
+    command: /start
+    environment:
+      - USE_DOCKER=true
+      - IPYTHONDIR=/app/.ipython
+      - MEDIA_URL=http://52.230.8.28/media/
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=psql://localuser:localpass@postgres:5432/ethicaladserver
+      - METABASE_SITE_URL=http://metabase:3000
+      - ADSERVER_ANALYZER_BACKEND="adserver.analyzer.backends.TextacyAnalyzerBackend"
+      - COLUMNS=80
+      - ETHICALADS_DJANGO_PORT=5000
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.ethical-ad-server.rule=Host(`52.230.8.28`)
+        - traefik.http.services.ethical-ad-server.loadbalancer.server.port=5000
+
+  postgres:
+    image: kahfads${ENV}.azurecr.io/ethical-adserver/postgres:latest
+    volumes:
+      - local_postgres_data:/var/lib/postgresql/data
+      - local_postgres_data_backups:/backups
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=ethicaladserver
+      - POSTGRES_USER=localuser
+      - POSTGRES_PASSWORD=localpass
+
+  redis:
+    image: redis:5.0
+
+  celery_worker:
+    image: kahfads${ENV}.azurecr.io/ethical-adserver/backend:latest
+    depends_on:
+      - redis
+      - postgres
+    environment:
+      - USE_DOCKER=true
+      - IPYTHONDIR=/app/.ipython
+      - MEDIA_URL=http://localhost:5000/media/
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=psql://localuser:localpass@postgres:5432/ethicaladserver
+      - METABASE_SITE_URL=http://metabase:3000
+      - ADSERVER_ANALYZER_BACKEND="adserver.analyzer.backends.TextacyAnalyzerBackend"
+      - COLUMNS=80
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=ethicaladserver
+      - POSTGRES_USER=localuser
+      - POSTGRES_PASSWORD=localpass
+    command: /start-celeryworker
+
+  celery_beat:
+    image: kahfads${ENV}.azurecr.io/ethical-adserver/backend:latest
+    depends_on:
+      - redis
+      - postgres
+    environment:
+      - USE_DOCKER=true
+      - IPYTHONDIR=/app/.ipython
+      - MEDIA_URL=http://localhost:5000/media/
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=psql://localuser:localpass@postgres:5432/ethicaladserver
+      - METABASE_SITE_URL=http://metabase:3000
+      - ADSERVER_ANALYZER_BACKEND="adserver.analyzer.backends.TextacyAnalyzerBackend"
+      - COLUMNS=80
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=ethicaladserver
+      - POSTGRES_USER=localuser
+      - POSTGRES_PASSWORD=localpass
+    command: /start-celerybeat
+
+  metabase:
+    image: metabase/metabase
+    volumes:
+      - local_metabase_data:/metabase-data

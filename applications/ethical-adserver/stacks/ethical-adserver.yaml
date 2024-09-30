@@ -12,13 +12,19 @@ services:
     environment:
       - USE_DOCKER=true
       - IPYTHONDIR=/app/.ipython
-      - MEDIA_URL=http://52.230.8.28/media/
+      - MEDIA_URL=https://www.kahfads.com/media/
       - REDIS_URL=redis://redis:6379/0
       - DATABASE_URL=psql://localuser:localpass@postgres:5432/ethicaladserver
       - METABASE_SITE_URL=http://metabase:3000
       - ADSERVER_ANALYZER_BACKEND="adserver.analyzer.backends.TextacyAnalyzerBackend"
       - COLUMNS=80
       - ETHICALADS_DJANGO_PORT=5000
+      - ALLOWED_HOSTS=kahfads.com,www.kahfads.com
+      - DEBUG=False
+      - SECRET_KEY=ry8_m6%&vod4jclvlzrbt9r=lyn(4s+8l30&%jssn+qzf$l!lr
+      - ADSERVER_HTTPS=True
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - SENDGRID_API_KEY=aaaaa
     deploy:
       labels:
         - traefik.enable=true

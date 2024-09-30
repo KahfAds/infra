@@ -22,8 +22,16 @@ services:
     deploy:
       labels:
         - traefik.enable=true
-        - traefik.http.routers.ethical-ad-server.rule=Host(`52.230.8.28`)
+        - traefik.http.routers.ethical-ad-server-http.entrypoints=web
+        - traefik.http.routers.ethical-ad-server-http.rule=Host(`kahfads.com`) || Host(`www.kahfads.com`)
+        - traefik.http.routers.ethical-ad-server-http.middlewares=redirect-to-https
+        - traefik.http.routers.ethical-ad-server-https.entrypoints=websecure
+        - traefik.http.routers.ethical-ad-server-https.rule=Host(`kahfads.com`) || Host(`www.kahfads.com`)
+        - traefik.http.routers.ethical-ad-server-https.tls=true
+        - traefik.http.routers.ethical-ad-server-https.tls.certresolver=letsEncrypt
         - traefik.http.services.ethical-ad-server.loadbalancer.server.port=5000
+        - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+        - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
 
   postgres:
     image: kahfads${ENV}.azurecr.io/ethical-adserver/postgres:latest

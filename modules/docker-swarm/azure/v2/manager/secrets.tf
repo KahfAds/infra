@@ -8,7 +8,7 @@ terraform {
 }
 
 resource "ssh_resource" "docker_secrets" {
-  depends_on = [azurerm_linux_virtual_machine.primary, module.ssh_key]
+  depends_on = [azurerm_linux_virtual_machine.leader, module.ssh_key]
 
   host = azurerm_public_ip.primary.ip_address
   user = local.admin_username

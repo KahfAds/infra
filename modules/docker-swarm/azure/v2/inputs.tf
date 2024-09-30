@@ -38,3 +38,17 @@ variable "roles" {
   type = map(string) # { role_definition_name = scope }
   default = {}
 }
+
+variable "worker_scale" {
+  type = object({
+    min = number
+    max = number
+    desired = number
+  })
+
+  default = {
+    min = 1
+    max = 3
+    desired = 3
+  }
+}

@@ -23,4 +23,5 @@ module "worker" {
   roles = var.roles
   subnet = var.subnet
   join_command = module.manager.worker_join_command
+  scale = var.worker_scale
 }

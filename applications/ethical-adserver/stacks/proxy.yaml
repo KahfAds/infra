@@ -49,12 +49,13 @@ services:
       labels:
         - traefik.enable=true
         - traefik.http.services.proxy.loadbalancer.server.port=9999
-        - traefik.http.routers.dashboard.entrypoints=traefik
-        - traefik.http.routers.dashboard.rule=(PathPrefix(`/api`) || PathPrefix(`/dashboard`))
-        - traefik.http.routers.dashboard.service=api@internal
+        - traefik.http.routers.traefik-dashboard.entrypoints=traefik
+        - traefik.http.routers.traefik-dashboard.rule=(PathPrefix(`/api`) || PathPrefix(`/dashboard`))
+        - traefik.http.routers.traefik-dashboard.service=api@internal
     networks:
       - ${network_name}
       - ad_server
+      - monitoring
 networks:
   ${network_name}:
     name: ${network_name}
@@ -62,5 +63,8 @@ networks:
     attachable: true
   ad_server:
     name: ethical_ad_server_default
+    external: true
+  monitoring:
+    name: monitoring_default
     external: true
 

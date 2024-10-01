@@ -1,0 +1,44 @@
+services:
+  swarm-dashboard:
+    image: mohsenasm/swarm-dashboard:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      TZ: "Asia/Dhaka"
+      ENABLE_AUTHENTICATION: "false"
+      ENABLE_HTTPS: "false"
+      NODE_EXPORTER_SERVICE_NAME_REGEX: "node-exporter"
+      CADVISOR_SERVICE_NAME_REGEX: "cadvisor"
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.monitoring-dashboard.entrypoints=websecure
+        - traefik.http.routers.monitoring-dashboard.rule=Host(`dashboard.kahfads.com`)
+        - traefik.http.routers.monitoring-dashboard.tls=true
+        - traefik.http.routers.monitoring-dashboard.tls.certresolver=letsEncrypt
+        - traefik.http.services.monitoring-dashboard.loadbalancer.server.port=8080
+        - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+        - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
+
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:v1.6.1
+    volumes:
+      - '/:/host:ro'
+    command:
+      - '--path.rootfs=/host'
+    deploy:
+      mode: global
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.2
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    deploy:
+      mode: global

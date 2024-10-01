@@ -4,8 +4,9 @@ locals {
     ethical_ad_server = base64encode(templatefile("${path.module}/stacks/ethical-adserver.yaml", {
       ENV = local.env
     }))
-    #     prune           = base64encode(file("${path.module}/stacks/prune-nodes.yaml"))
-    #     swarm-cronjob   = base64encode(file("${path.module}/stacks/swarm-cronjob.yaml"))
+    monitoring        = base64encode(file("${path.module}/stacks/monitoring.yaml"))
+    prune           = base64encode(file("${path.module}/stacks/prune-nodes.yaml"))
+    swarm-cronjob   = base64encode(file("${path.module}/stacks/swarm-cronjob.yaml"))
   }
 }
 

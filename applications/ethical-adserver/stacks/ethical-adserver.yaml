@@ -2,6 +2,7 @@ volumes:
   local_postgres_data: {}
   local_postgres_data_backups: {}
   local_metabase_data: {}
+  local_media: {}
 
 services:
   django:
@@ -9,6 +10,8 @@ services:
     depends_on:
       - postgres
     command: /start
+    volumes:
+      - local_media:/app/media
     environment:
       - USE_DOCKER=true
       - IPYTHONDIR=/app/.ipython

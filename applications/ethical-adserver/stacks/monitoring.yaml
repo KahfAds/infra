@@ -70,6 +70,10 @@ services:
       - type: volume
         source: prometheus-data
         target: /prometheus
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        read_only: true
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:v0.47.0
@@ -81,6 +85,8 @@ services:
           memory: 128M
         reservations:
           memory: 64M
+      labels:
+        - prometheus-job=cadvisor
     volumes:
       - type: bind
         source: /

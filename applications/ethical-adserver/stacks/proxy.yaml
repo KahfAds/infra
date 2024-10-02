@@ -49,13 +49,18 @@ services:
       labels:
         - traefik.enable=true
         - traefik.http.services.proxy.loadbalancer.server.port=9999
-        - traefik.http.routers.traefik-dashboard.entrypoints=traefik
-        - traefik.http.routers.traefik-dashboard.rule=(PathPrefix(`/api`) || PathPrefix(`/dashboard`))
+        - traefik.http.routers.traefik-dashboard.entrypoints=websecure
+        - traefik.http.routers.traefik-dashboard.rule=Host(`proxy.kahfads.com`)
         - traefik.http.routers.traefik-dashboard.service=api@internal
+        - traefik.http.routers.traefik-dashboard.tls=true
+        - traefik.http.routers.traefik-dashboard.tls.certresolver=letsEncrypt
+        - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+        - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
     networks:
       - ${network_name}
       - ad_server
       - monitoring
+      - portainer
 networks:
   ${network_name}:
     name: ${network_name}
@@ -67,4 +72,8 @@ networks:
   monitoring:
     name: monitoring_default
     external: true
+  portainer:
+    name: portainer_agent_network
+    external: true
+
 

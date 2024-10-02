@@ -106,7 +106,7 @@ services:
   node-exporter:
     image: prom/node-exporter:v1.5.0
     command:
-      - "-path.sysfs=/host/sys"
+      - "--path.sysfs=/host/sys"
       - "--path.procfs=/host/proc"
       - "--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)"
       - "--no-collector.ipvs"

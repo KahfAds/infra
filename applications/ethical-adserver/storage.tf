@@ -1,0 +1,24 @@
+resource "azurerm_storage_account" "this" {
+  depends_on = [module.core_network]
+
+  account_replication_type      = "LRS"
+  account_tier                  = "Standard"
+  location                      = azurerm_resource_group.this.location
+  name                          = "kahfads${local.env}"
+  resource_group_name           = azurerm_resource_group.this.name
+  account_kind                  = "StorageV2"
+  public_network_access_enabled = true
+  https_traffic_only_enabled    = false
+}
+
+resource "azurerm_storage_container" "this" {
+  name                  = "ethicaladserver"
+  storage_account_name  = azurerm_storage_account.this.name
+  container_access_type = "blob"
+}
+
+resource "azurerm_storage_container" "backup" {
+  name                  = "backups"
+  storage_account_name  = azurerm_storage_account.this.name
+  container_access_type = "private"
+}

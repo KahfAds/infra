@@ -1,16 +1,23 @@
 locals {
   stacks = {
     ethical_ad_server = base64encode(templatefile("${path.module}/stacks/ethical-adserver.yaml", {
-      ENV = local.env
+      ENV                = local.env
+      AZURE_ACCOUNT_NAME = azurerm_storage_account.this.name
+      AZURE_ACCOUNT_KEY = azurerm_storage_account.this.primary_access_key
+      AZURE_CONTAINER    = azurerm_storage_container.this.name
+      SENDGRID_API_KEY   = var.sendgrid_api_key
+      SECRET_KEY         = var.secret_key
+      SERVER_EMAIL       = var.sender_email
+      METABASE_SECRET_KEY = var.metabase_secret_key
     }))
-    monitoring      = base64encode(templatefile("${path.module}/stacks/monitoring.yaml", {
-      GRAFANA_USER = "admin"
+    monitoring = base64encode(templatefile("${path.module}/stacks/monitoring.yaml", {
+      GRAFANA_USER     = "admin"
       GRAFANA_PASSWORD = "4U0T1&BrlWAL"
     }))
-    portainer       = base64encode(file("${path.module}/stacks/portainer.yaml"))
-    prune           = base64encode(file("${path.module}/stacks/prune-nodes.yaml"))
-    swarm-cronjob   = base64encode(file("${path.module}/stacks/swarm-cronjob.yaml"))
-    proxy           = local.stack_proxy
+    portainer     = base64encode(file("${path.module}/stacks/portainer.yaml"))
+    prune         = base64encode(file("${path.module}/stacks/prune-nodes.yaml"))
+    swarm-cronjob = base64encode(file("${path.module}/stacks/swarm-cronjob.yaml"))
+    proxy         = local.stack_proxy
   }
 }
 

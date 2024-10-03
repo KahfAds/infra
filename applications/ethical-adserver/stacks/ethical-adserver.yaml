@@ -1,8 +1,30 @@
 volumes:
-  local_postgres_data: {}
-  local_postgres_data_backups: {}
-  local_metabase_data: {}
-  local_media: {}
+  local_postgres_data: { }
+  local_postgres_data_backups: { }
+  local_metabase_data: { }
+  local_media: { }
+
+x-web-env: &django-env
+  environment:
+    - USE_DOCKER=true
+    - IPYTHONDIR=/app/.ipython
+    - MEDIA_URL=https://www.kahfads.com/media/
+    - REDIS_URL=redis://redis:6379/0
+    - DATABASE_URL=psql://localuser:localpass@postgres:5432/ethicaladserver
+    - METABASE_SITE_URL=http://metabase:3000
+    - ADSERVER_ANALYZER_BACKEND="adserver.analyzer.backends.TextacyAnalyzerBackend"
+    - COLUMNS=80
+    - ETHICALADS_DJANGO_PORT=5000
+    - ALLOWED_HOSTS=kahfads.com,www.kahfads.com
+    - SECRET_KEY=${SECRET_KEY}
+    - ADSERVER_HTTPS=True
+    - DJANGO_SETTINGS_MODULE=config.settings.production
+    - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+    - AZURE_ACCOUNT_NAME=${AZURE_ACCOUNT_NAME}
+    - AZURE_ACCOUNT_KEY=${AZURE_ACCOUNT_KEY}
+    - AZURE_CONTAINER=${AZURE_CONTAINER}
+    - SERVER_EMAIL=${SERVER_EMAIL}
+    - METABASE_SECRET_KEY=${METABASE_SECRET_KEY}
 
 services:
   django:
@@ -12,22 +34,7 @@ services:
     command: /start
     volumes:
       - local_media:/app/media
-    environment:
-      - USE_DOCKER=true
-      - IPYTHONDIR=/app/.ipython
-      - MEDIA_URL=https://www.kahfads.com/media/
-      - REDIS_URL=redis://redis:6379/0
-      - DATABASE_URL=psql://localuser:localpass@postgres:5432/ethicaladserver
-      - METABASE_SITE_URL=http://metabase:3000
-      - ADSERVER_ANALYZER_BACKEND="adserver.analyzer.backends.TextacyAnalyzerBackend"
-      - COLUMNS=80
-      - ETHICALADS_DJANGO_PORT=5000
-      - ALLOWED_HOSTS=kahfads.com,www.kahfads.com
-      - DEBUG=False
-      - SECRET_KEY=ry8_m6%&vod4jclvlzrbt9r=lyn(4s+8l30&%jssn+qzf$l!lr
-      - ADSERVER_HTTPS=True
-      - DJANGO_SETTINGS_MODULE=config.settings.production
-      - SENDGRID_API_KEY=aaaaa
+    <<: *django-env
     deploy:
       labels:
         - traefik.enable=true
@@ -62,20 +69,7 @@ services:
     depends_on:
       - redis
       - postgres
-    environment:
-      - USE_DOCKER=true
-      - IPYTHONDIR=/app/.ipython
-      - MEDIA_URL=http://localhost:5000/media/
-      - REDIS_URL=redis://redis:6379/0
-      - DATABASE_URL=psql://localuser:localpass@postgres:5432/ethicaladserver
-      - METABASE_SITE_URL=http://metabase:3000
-      - ADSERVER_ANALYZER_BACKEND="adserver.analyzer.backends.TextacyAnalyzerBackend"
-      - COLUMNS=80
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_DB=ethicaladserver
-      - POSTGRES_USER=localuser
-      - POSTGRES_PASSWORD=localpass
+    <<: *django-env
     command: /start-celeryworker
 
   celery_beat:
@@ -83,23 +77,12 @@ services:
     depends_on:
       - redis
       - postgres
-    environment:
-      - USE_DOCKER=true
-      - IPYTHONDIR=/app/.ipython
-      - MEDIA_URL=http://localhost:5000/media/
-      - REDIS_URL=redis://redis:6379/0
-      - DATABASE_URL=psql://localuser:localpass@postgres:5432/ethicaladserver
-      - METABASE_SITE_URL=http://metabase:3000
-      - ADSERVER_ANALYZER_BACKEND="adserver.analyzer.backends.TextacyAnalyzerBackend"
-      - COLUMNS=80
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_DB=ethicaladserver
-      - POSTGRES_USER=localuser
-      - POSTGRES_PASSWORD=localpass
+    <<: *django-env
     command: /start-celerybeat
 
   metabase:
     image: metabase/metabase
     volumes:
       - local_metabase_data:/metabase-data
+    environment:
+      - MB_ENCRYPTION_SECRET_KEY=${METABASE_SECRET_KEY}

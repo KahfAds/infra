@@ -1,3 +1,5 @@
+volumes:
+  local_tls: {}
 services:
   proxy:
     image: traefik:v3.1.2
@@ -22,6 +24,7 @@ services:
         source: /var/run/docker.sock
         target: /var/run/docker.sock
         read_only: true
+      - local_tls:/traefik/tls
     ports:
       - target: 80
         published: 80

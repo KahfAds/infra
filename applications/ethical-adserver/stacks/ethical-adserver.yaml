@@ -1,6 +1,7 @@
 volumes:
   local_postgres_data: { }
   local_postgres_data_backups: { }
+  local_metabase_db: { }
   local_metabase_data: { }
   local_media: { }
 
@@ -11,7 +12,7 @@ x-web-env: &django-env
     - MEDIA_URL=https://www.kahfads.com/media/
     - REDIS_URL=redis://redis:6379/0
     - DATABASE_URL=psql://localuser:localpass@postgres:5432/ethicaladserver
-    - METABASE_SITE_URL=http://metabase:3000
+    - METABASE_SITE_URL=https://metabase.kahfads.com
     - ADSERVER_ANALYZER_BACKEND="adserver.analyzer.backends.TextacyAnalyzerBackend"
     - COLUMNS=80
     - ETHICALADS_DJANGO_PORT=5000
@@ -38,13 +39,13 @@ services:
     deploy:
       labels:
         - traefik.enable=true
-        - traefik.http.routers.ethical-ad-server-http.entrypoints=web
-        - traefik.http.routers.ethical-ad-server-http.rule=Host(`kahfads.com`) || Host(`www.kahfads.com`)
-        - traefik.http.routers.ethical-ad-server-http.middlewares=redirect-to-https
-        - traefik.http.routers.ethical-ad-server-https.entrypoints=websecure
-        - traefik.http.routers.ethical-ad-server-https.rule=Host(`kahfads.com`) || Host(`www.kahfads.com`)
-        - traefik.http.routers.ethical-ad-server-https.tls=true
-        - traefik.http.routers.ethical-ad-server-https.tls.certresolver=letsEncrypt
+        - traefik.http.routers.ethical-metabase-http.entrypoints=web
+        - traefik.http.routers.ethical-metabase-http.rule=Host(`kahfads.com`) || Host(`www.kahfads.com`)
+        - traefik.http.routers.ethical-metabase-http.middlewares=redirect-to-https
+        - traefik.http.routers.ethical-metabase-https.entrypoints=websecure
+        - traefik.http.routers.ethical-metabase-https.rule=Host(`kahfads.com`) || Host(`www.kahfads.com`)
+        - traefik.http.routers.ethical-metabase-https.tls=true
+        - traefik.http.routers.ethical-metabase-https.tls.certresolver=letsEncrypt
         - traefik.http.services.ethical-ad-server.loadbalancer.server.port=5000
         - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
         - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
@@ -84,5 +85,34 @@ services:
     image: metabase/metabase
     volumes:
       - local_metabase_data:/metabase-data
+    depends_on:
+      - metabase_db
     environment:
       - MB_ENCRYPTION_SECRET_KEY=${METABASE_SECRET_KEY}
+      - MB_DB_TYPE=postgres
+      - MB_DB_DBNAME=metabase_app_db
+      - MB_DB_PORT=5432
+      - MB_DB_USER=localuser
+      - MB_DB_PASS=localpass
+      - MB_DB_HOST=metabase_db
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.metabase.entrypoints=websecure
+        - traefik.http.routers.metabase.rule=Host(`metabase.kahfads.com`)
+        - traefik.http.routers.metabase.tls=true
+        - traefik.http.routers.metabase.tls.certresolver=letsEncrypt
+        - traefik.http.services.metabase.loadbalancer.server.port=3000
+        - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+        - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
+
+  metabase_db:
+    image: postgres:16.4-bullseye
+    volumes:
+      - local_metabase_db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=metabase_app_db
+      - POSTGRES_USER=localuser
+      - POSTGRES_PASSWORD=localpass

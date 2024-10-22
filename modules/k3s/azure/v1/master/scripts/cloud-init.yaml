@@ -1,0 +1,22 @@
+#cloud-config
+packages:
+  - curl
+  - ca-certificates
+  - apt-transport-https
+  - lsb-release
+  - gnupg
+users:
+  - name: azure-user
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+runcmd:
+  - apt-get update -y
+  - curl https://get.k3s.io | sh -
+  - chown azure-user:azure-user /etc/rancher/k3s/k3s.yaml
+  - chown azure-user:azure-user /var/lib/rancher/k3s/server/node-token
+  - curl -sL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/microsoft.gpg > /dev/null
+  - export AZ_REPO=$(lsb_release -cs)
+  - echo 'deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ jammy main' | tee /etc/apt/sources.list.d/azure-cli.list
+  - apt-get update
+  - apt-get install -y azure-cli
+  - az login --identity

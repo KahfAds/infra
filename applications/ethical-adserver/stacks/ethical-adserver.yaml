@@ -26,6 +26,8 @@ x-web-env: &django-env
     - AZURE_CONTAINER=${AZURE_CONTAINER}
     - SERVER_EMAIL=${SERVER_EMAIL}
     - METABASE_SECRET_KEY=${METABASE_SECRET_KEY}
+    - ADSERVER_GEOIP_MIDDLEWARE=adserver.middleware.CloudflareGeoIpMiddleware
+    - ADSERVER_IPADDRESS_MIDDLEWARE=adserver.middleware.CloudflareIpAddressMiddleware
 
 services:
   django:
@@ -42,7 +44,6 @@ services:
         - traefik.http.routers.django-http.entrypoints=web
         - traefik.http.routers.django-http.rule=Host(`kahfads.com`) || Host(`www.kahfads.com`)
         - traefik.http.routers.django-http.middlewares=django-mw1,django-mw2
-        - traefik.http.routers.django-https.middlewares=django-mw3
         - traefik.http.routers.django-https.entrypoints=websecure
         - traefik.http.routers.django-https.rule=Host(`kahfads.com`) || Host(`www.kahfads.com`)
         - traefik.http.routers.django-https.tls=true
@@ -51,7 +52,6 @@ services:
         - traefik.http.middlewares.django-mw1.redirectscheme.scheme=https
         - traefik.http.middlewares.django-mw1.redirectscheme.permanent=true
         - traefik.http.middlewares.django-mw2.forwardauth.trustForwardHeader=true
-        - traefik.http.middlewares.django-mw3.plugin.cloudflarewarp.disableDefault=false
 
   echo:
     image: greenstatic/echo-ip

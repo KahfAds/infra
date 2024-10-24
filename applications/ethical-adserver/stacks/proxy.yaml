@@ -19,6 +19,8 @@ services:
       - "--certificatesResolvers.letsEncrypt.acme.email=mazharul@kahf.co"
       - "--certificatesResolvers.letsEncrypt.acme.storage=/traefik/tls/acme.json"
       - "--certificatesResolvers.letsEncrypt.acme.httpChallenge.entryPoint=web"
+      - "--experimental.plugins.cloudflarewarp.modulename=github.com/BetterCorp/cloudflarewarp"
+      - "--experimental.plugins.cloudflarewarp.version=v1.3.3"
     volumes:
       - type: bind
         source: /var/run/docker.sock
@@ -28,12 +30,12 @@ services:
     ports:
       - target: 80
         published: 80
-        mode: ingress
+        mode: host
         protocol: tcp
       - protocol: tcp
         target: 443
         published: 443
-        mode: ingress
+        mode: host
       - protocol: tcp
         target: 8080
         published: 8080

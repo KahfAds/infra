@@ -14,3 +14,7 @@ variable "sender_email" {
 variable "metabase_secret_key" {
   type = string
 }
+
+variable "metabase_embed_key" {
+  type = string
+}

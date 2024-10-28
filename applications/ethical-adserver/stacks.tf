@@ -9,6 +9,7 @@ locals {
       SECRET_KEY         = var.secret_key
       SERVER_EMAIL       = var.sender_email
       METABASE_SECRET_KEY = var.metabase_secret_key
+      METABASE_EMBED_KEY = var.metabase_embed_key
     }))
     monitoring = base64encode(templatefile("${path.module}/stacks/monitoring.yaml", {
       GRAFANA_USER     = "admin"

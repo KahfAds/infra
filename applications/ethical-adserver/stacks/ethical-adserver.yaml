@@ -32,6 +32,7 @@ x-web-env: &django-env
     - PUBLISHER_FIGURES=2
     - PUBLISHER_KEYWORD_REPORT=30
     - ALL_ADVERTISERS_BREAKDOWN=31
+    - SENTRY_DSN=https://6fee6a733a64437afa77cfd7344fd131@o4508199963459584.ingest.de.sentry.io/4508199965032528
 
 services:
   django:
@@ -90,7 +91,6 @@ services:
       - POSTGRES_PASSWORD=localpass
     ports:
       - "5432:5432"
-
 
   redis:
     image: redis:5.0

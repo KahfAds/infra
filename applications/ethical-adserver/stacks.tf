@@ -10,6 +10,9 @@ locals {
       SERVER_EMAIL       = var.sender_email
       METABASE_SECRET_KEY = var.metabase_secret_key
       METABASE_EMBED_KEY = var.metabase_embed_key
+      POSTGRES_HOST = azurerm_postgresql_flexible_server.this.fqdn
+      POSTGRES_USER = local.database_user
+      POSTGRES_PASSWORD = random_password.database.result
     }))
     monitoring = base64encode(templatefile("${path.module}/stacks/monitoring.yaml", {
       GRAFANA_USER     = "admin"

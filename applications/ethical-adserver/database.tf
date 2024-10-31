@@ -78,3 +78,15 @@ resource "azurerm_postgresql_flexible_server_database" "revive_ad_server" {
     prevent_destroy = true
   }
 }
+
+resource "azurerm_postgresql_flexible_server_configuration" "database" {
+  name      = "require_secure_transport"
+  server_id = azurerm_postgresql_flexible_server.this.id
+  value     = "on"
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "extensions" {
+  name      = "azure.extensions"
+  server_id = azurerm_postgresql_flexible_server.this.id
+  value     = "citext,pg_trgm,postgis,timescaledb,hstore,uuid-ossp,plpgsql,pg_stat_statements,vector"
+}

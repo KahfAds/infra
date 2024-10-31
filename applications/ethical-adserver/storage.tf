@@ -9,6 +9,11 @@ resource "azurerm_storage_account" "this" {
   account_kind                  = "StorageV2"
   public_network_access_enabled = true
   https_traffic_only_enabled    = false
+
+  static_website {
+    index_document = "index.html"
+    error_404_document = "404.html"
+  }
 }
 
 resource "azurerm_storage_container" "this" {

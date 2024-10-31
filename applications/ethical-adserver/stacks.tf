@@ -13,6 +13,7 @@ locals {
       POSTGRES_HOST = azurerm_postgresql_flexible_server.this.fqdn
       POSTGRES_USER = local.database_user
       POSTGRES_PASSWORD = random_password.database.result
+      DEFAULT_FILE_STORAGE_HOSTNAME = "media.kahfads.com"
     }))
     monitoring = base64encode(templatefile("${path.module}/stacks/monitoring.yaml", {
       GRAFANA_USER     = "admin"

@@ -7,3 +7,4 @@ modules/docker-swarm/azure/v1/worker-token.txt
 *.tfstate.backup
 applications/revive-adserver/new_plan
 *.tfvars
+**/**/new_plan

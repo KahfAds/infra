@@ -36,6 +36,8 @@ x-web-env: &django-env
     - ALL_ADVERTISERS_BREAKDOWN=31
     - SENTRY_DSN=https://6fee6a733a64437afa77cfd7344fd131@o4508199963459584.ingest.de.sentry.io/4508199965032528
     - ADVERTISER_GEO_REPORT=37
+    - ADVERTISER_FIGURES=3
+    - ADVERTISER_PER_AD_TABLE=39
 
 services:
   django:

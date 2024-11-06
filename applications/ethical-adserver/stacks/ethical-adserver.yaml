@@ -39,6 +39,7 @@ x-web-env: &django-env
     - ADVERTISER_FIGURES=3
     - ADVERTISER_PER_AD_TABLE=39
     - ADVERTISER_KEYWORD_CTR=41
+    - ADVERTISER_TOPIC_PERFORMANCE=42
 
 services:
   django:

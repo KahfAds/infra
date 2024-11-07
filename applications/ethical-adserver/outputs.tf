@@ -1,7 +1,7 @@
 output "this" {
   value = {
     swarm = {
-      leader_ip = module.swarm_cluster.ssh.ip_address
+      ip_addresses = module.swarm_cluster.ssh.ip_addresses
     }
   }
 }

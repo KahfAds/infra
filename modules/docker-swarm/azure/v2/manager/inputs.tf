@@ -45,5 +45,5 @@ variable "roles" {
 
 variable "replica" {
   type = number
-  default = 0
+  default = 2
 }

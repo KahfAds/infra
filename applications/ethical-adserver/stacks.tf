@@ -55,7 +55,7 @@ resource "null_resource" "stack_deployments" {
   triggers = {
     user_name            = module.swarm_cluster.ssh.username
     private_key          = module.swarm_cluster.ssh.private_key_pem
-    host                 = module.swarm_cluster.ssh.ip_address
+    host                 = module.swarm_cluster.ssh.ip_addresses.leader
     key                  = each.key
     compose_file_content = base64decode(each.value)
   }
@@ -80,7 +80,7 @@ resource "null_resource" "stack_removal" {
   triggers = {
     user_name   = module.swarm_cluster.ssh.username
     private_key = module.swarm_cluster.ssh.private_key_pem
-    host        = module.swarm_cluster.ssh.ip_address
+    host        = module.swarm_cluster.ssh.ip_addresses.leader
     key         = each.key
   }
 }

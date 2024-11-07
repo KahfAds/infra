@@ -1,66 +1,3 @@
-locals {
-  admin_username = "azure-user"
-  program = [
-    "bash",
-    "${path.module}/scripts/query-swarm.sh",
-    base64encode(module.ssh_key.private_key_pem),
-    local.admin_username,
-    azurerm_public_ip.primary.ip_address
-  ]
-
-  remote_exec = concat([
-    # Step 1: Create the cert directory
-    "sudo mkdir -p /etc/docker/certs",
-    "echo '{ \"metrics-addr\" : \"0.0.0.0:9323\", \"experimental\" : true}' | sudo tee /etc/docker/daemon.json",
-    # Step 1: Write CA certificate to the correct directory
-    "echo '${tls_self_signed_cert.ca_cert.cert_pem}' | sudo tee /etc/docker/certs/ca.pem",
-    # Step 2: Write server certificate
-    "echo '${tls_locally_signed_cert.server_cert.cert_pem}' | sudo tee /etc/docker/certs/server-cert.pem",
-    # Step 3: Write server private key
-    "echo '${tls_private_key.server_key.private_key_pem}' | sudo tee /etc/docker/certs/server-key.pem",
-    # Step 4: Install Docker and start swarm
-    "sudo apt-get update",
-    "sudo apt-get install -y docker.io uidmap jq nfs-common",
-    "yes | sudo ufw enable",
-    "sudo ufw allow 22/tcp",
-    "sudo ufw allow 2376/tcp",
-    "sudo ufw allow 2377/tcp",
-    "sudo ufw allow 7946/tcp",
-    "sudo ufw allow 7946/udp",
-    "sudo ufw allow 4789/udp",
-    "sudo ufw allow 8080/tcp",
-    "sudo ufw reload",
-    # Step 5: Configure Docker with TLS certs
-    "sudo sed -i 's|ExecStart=/usr/bin/dockerd -H fd://|ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:2376 --tlsverify --tlscacert=/etc/docker/certs/ca.pem --tlscert=/etc/docker/certs/server-cert.pem --tlskey=/etc/docker/certs/server-key.pem|' /lib/systemd/system/docker.service",
-    # Step 6: Reload and restart Docker to apply changes
-    "sudo systemctl daemon-reload",
-    "sudo systemctl restart docker",
-    # Start docker swarm
-    "PRIVATE_IP=$(curl -s -H Metadata:true --noproxy \"*\" \"http://169.254.169.254/metadata/instance?api-version=2021-02-01\" | jq -r \".network.interface[0].ipv4.ipAddress[0].privateIpAddress\")",
-    "sudo docker swarm init --default-addr-pool 10.0.0.0/8 --default-addr-pool-mask-length 24 --listen-addr \"$PRIVATE_IP\" --advertise-addr \"$PRIVATE_IP\""
-  ], local.registry_login)
-}
-
-module "ssh_key" {
-  source              = "../../../../ssh-keys/azure/v1"
-  location            = var.location
-  name_prefix         = var.name_prefix
-  resource_group_name = var.resource_group_name
-}
-
-resource "azurerm_availability_set" "this" {
-  location                    = var.location
-  name                        = "${var.name_prefix}-AS"
-  resource_group_name         = var.resource_group_name
-  platform_fault_domain_count = 2
-}
-
-resource "azurerm_user_assigned_identity" "this" {
-  name                = "${var.name_prefix}-identity"
-  resource_group_name = var.resource_group_name
-  location            = var.location
-}
-
 resource "azurerm_linux_virtual_machine" "leader" {
   name                            = "${var.name_prefix}-vm"
   location                        = var.location
@@ -70,12 +7,6 @@ resource "azurerm_linux_virtual_machine" "leader" {
   availability_set_id             = azurerm_availability_set.this.id
 
   network_interface_ids = [azurerm_network_interface.primary.id]
-
-  # Uncomment this line to delete the OS disk automatically when deleting the VM
-  # delete_os_disk_on_termination = true
-
-  # Uncomment this line to delete the data disks automatically when deleting the VM
-  # delete_data_disks_on_termination = true
 
   source_image_reference {
     publisher = "Canonical"
@@ -112,19 +43,16 @@ resource "azurerm_linux_virtual_machine" "leader" {
   }
 
   provisioner "remote-exec" {
-    inline = local.remote_exec
+    inline = concat(
+      local.docker_install,
+      local.swarm_init,
+      local.registry_login
+    )
   }
 
   tags = {
     environment = terraform.workspace
   }
-}
-
-resource "azurerm_role_assignment" "this" {
-  for_each             = var.roles
-  principal_id         = azurerm_user_assigned_identity.this.principal_id
-  role_definition_name = each.key
-  scope                = each.value
 }
 
 data "external" "worker_join_command" {
@@ -141,4 +69,181 @@ data "external" "join_command" {
   query = {
     args = "manager"
   }
+}
+
+resource "azurerm_network_interface" "primary" {
+  name                = "${var.name_prefix}-node-nic"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+
+  ip_configuration {
+    name                          = "ipconfig1"
+    subnet_id                     = var.subnet.id
+    private_ip_address_allocation = "Static"
+    private_ip_address            = var.private_ip_address
+    public_ip_address_id          = azurerm_public_ip.primary.id
+  }
+}
+
+resource "azurerm_public_ip" "primary" {
+  name                = "${var.name_prefix}-node-public-ip"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_network_security_group" "primary" {
+  name                = "${var.name_prefix}-node-sg"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+
+  security_rule {
+    name                       = "SSH"
+    priority                   = 1001
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "Swarm01"
+    priority                   = 1002
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "2376"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "Swarm02"
+    priority                   = 1003
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "2377"
+    source_address_prefix      = var.network.prefix
+    destination_address_prefix = var.network.prefix
+  }
+
+  security_rule {
+    name                       = "Swarm03"
+    priority                   = 1004
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "7946"
+    source_address_prefix      = var.network.prefix
+    destination_address_prefix = var.network.prefix
+  }
+
+  security_rule {
+    name                       = "Swarm04"
+    priority                   = 1005
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Udp"
+    source_port_range          = "*"
+    destination_port_range     = "7946"
+    source_address_prefix      = var.network.prefix
+    destination_address_prefix = var.network.prefix
+  }
+
+  security_rule {
+    name                       = "Swarm05"
+    priority                   = 1006
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Udp"
+    source_port_range          = "*"
+    destination_port_range     = "4789"
+    source_address_prefix      = var.network.prefix
+    destination_address_prefix = var.network.prefix
+  }
+
+  security_rule {
+    name                       = "HTTP"
+    priority                   = 1007
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "HTTPS"
+    priority                   = 1008
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "TRAEFIK"
+    priority                   = 1009
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "8080"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "TRAEFIK_PING"
+    priority                   = 1010
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "8082"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                   = "Allow-DNS-TCP"
+    priority               = 1011
+    direction              = "Inbound"
+    access                 = "Allow"
+    protocol               = "Tcp"
+    source_port_range      = "*"
+    destination_port_range = "53"
+    source_address_prefix  = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                   = "Allow-DNS-UDP"
+    priority               = 1012
+    direction              = "Inbound"
+    access                 = "Allow"
+    protocol               = "Udp"
+    source_port_range      = "*"
+    destination_port_range = "53"
+    source_address_prefix  = "*"
+    destination_address_prefix = "*"
+  }
+}
+
+resource "azurerm_network_interface_security_group_association" "node" {
+  network_interface_id      = azurerm_network_interface.primary.id
+  network_security_group_id = azurerm_network_security_group.primary.id
 }

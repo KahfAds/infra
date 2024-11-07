@@ -11,7 +11,10 @@ output "ssh" {
     private_key_pem = module.ssh_key.private_key_pem
     public_key = module.ssh_key.public_key
     username        = local.admin_username
-    ip_address      = azurerm_public_ip.primary.ip_address
+    ip_addresses      = {
+      leader = azurerm_public_ip.primary.ip_address
+      managers = azurerm_public_ip.manager.*.ip_address
+    }
   }
 }
 

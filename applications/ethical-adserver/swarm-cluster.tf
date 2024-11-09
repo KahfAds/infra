@@ -24,3 +24,11 @@ module "swarm_cluster" {
     desired = 0
   }
 }
+
+provider "docker" {
+  alias = "swarm"
+  host = "tcp://${module.swarm_cluster.docker.host}:2376"
+  cert_material = module.swarm_cluster.docker.cert
+  ca_material = module.swarm_cluster.docker.ca_cert
+  key_material = module.swarm_cluster.docker.key
+}

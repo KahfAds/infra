@@ -41,6 +41,8 @@ x-web-env: &django-env
     - ADVERTISER_KEYWORD_CTR=41
     - ADVERTISER_TOPIC_PERFORMANCE=42
     - ADSERVER_ETHICALADS_BRANDING=True
+  networks:
+    - logging
 
 services:
   django:
@@ -65,26 +67,6 @@ services:
         - traefik.http.middlewares.django-mw1.redirectscheme.scheme=https
         - traefik.http.middlewares.django-mw1.redirectscheme.permanent=true
         - traefik.http.middlewares.django-mw2.forwardauth.trustForwardHeader=true
-
-  echo:
-    image: greenstatic/echo-ip
-    deploy:
-      labels:
-        - traefik.enable=true
-        - traefik.http.middlewares.echo-ip-mw1.redirectscheme.scheme=https
-        - traefik.http.middlewares.echo-ip-mw1.redirectscheme.permanent=true
-        - traefik.http.middlewares.echo-ip-mw2.forwardauth.trustForwardHeader=true
-        - traefik.http.middlewares.echo-ip-mw3.plugin.cloudflarewarp.disableDefault=false
-        - traefik.http.routers.echo-ip-http.entrypoints=web
-        - traefik.http.routers.echo-ip-http.rule=Host(`echo.kahfads.com`)
-        - traefik.http.routers.echo-ip-http.middlewares=echo-ip-mw1,echo-ip-mw2
-        - traefik.http.routers.echo-ip-https.middlewares=echo-ip-mw3
-        - traefik.http.routers.echo-ip-https.entrypoints=websecure
-        - traefik.http.routers.echo-ip-https.rule=Host(`echo.kahfads.com`)
-        - traefik.http.routers.echo-ip-https.tls=true
-        - traefik.http.routers.echo-ip-https.tls.certresolver=letsEncrypt
-        - traefik.http.services.echo-ip.loadbalancer.server.port=8080
-
 
   postgres:
     image: kahfads${ENV}.azurecr.io/ethical-adserver/postgres:latest
@@ -156,3 +138,8 @@ services:
       - POSTGRES_PASSWORD=localpass
     ports:
       - "5433:5432"
+
+networks:
+  logging:
+    external: true
+    name: logging_default

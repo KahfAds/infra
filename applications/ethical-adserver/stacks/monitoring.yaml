@@ -50,6 +50,8 @@ services:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
       - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - logging
 
   prometheus:
     image: portainer/template-swarm-monitoring:prometheus-v2.44.0
@@ -140,3 +142,8 @@ services:
 volumes:
   grafana-data:
   prometheus-data:
+
+networks:
+  logging:
+    external: true
+    name: logging_default

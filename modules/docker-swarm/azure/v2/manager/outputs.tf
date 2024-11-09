@@ -11,11 +11,27 @@ output "ssh" {
     private_key_pem = module.ssh_key.private_key_pem
     public_key = module.ssh_key.public_key
     username        = local.admin_username
+
     ip_addresses      = {
       leader = azurerm_public_ip.primary.ip_address
       managers = azurerm_public_ip.manager.*.ip_address
     }
+
+    virtual_machines = concat([
+      {
+        leader = true
+        ip_address = azurerm_public_ip.primary.ip_address
+        id = azurerm_linux_virtual_machine.leader.id
+      }
+    ], [ for machine in azurerm_linux_virtual_machine.manager:
+      {
+        leader = false
+        ip_address = machine.public_ip_address
+        id = machine.id
+      }
+    ])
   }
+  sensitive = false
 }
 
 output "docker" {

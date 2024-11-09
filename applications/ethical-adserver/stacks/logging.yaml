@@ -1,0 +1,40 @@
+services:
+  loki:
+    image: grafana/loki:2.9.0
+    volumes:
+      - loki_data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512M
+    configs:
+      - source: loki
+        target: /etc/loki/local-config.yaml
+
+  promtail:
+    image: grafana/promtail:2.9.0
+    volumes:
+      - /var/log:/var/log  # Modify this to your logs directory
+      - /var/lib/docker:/var/lib/docker:ro  # Access to Docker logs
+    command: -config.file=/etc/promtail/config.yml
+    deploy:
+      replicas: 1
+    configs:
+      - source: promtail
+        target: /etc/promtail/config.yml
+
+configs:
+  loki:
+    name: ${LOKI_CONFIG_NAME}
+    external: true
+
+  promtail:
+    external: true
+    name: ${PROMTAIL_CONFIG_NAME}
+
+volumes:
+  loki_data:
+  grafana_data:

@@ -38,4 +38,4 @@ chunk_store_config:
 
 table_manager:
   retention_deletes_enabled: true
-  retention_period: 1440  # Retain logs for 60 Days
+  retention_period: 1440h  # Retain logs for 60 Days

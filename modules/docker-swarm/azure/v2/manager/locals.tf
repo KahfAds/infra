@@ -52,4 +52,8 @@ locals {
     "sudo systemctl daemon-reload",
     "sudo systemctl restart docker"
   ]
+
+  docker_plugins = [
+    "sudo docker plugin install grafana/loki-docker-driver:2.9.2 --alias loki --grant-all-permissions"
+  ]
 }

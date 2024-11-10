@@ -48,6 +48,7 @@ resource "azurerm_linux_virtual_machine" "manager" {
   provisioner "remote-exec" {
     inline = concat(
       local.docker_install,
+      local.docker_plugins,
       local.registry_login,
       ["sudo ${data.external.join_command.result.output}"]
     )

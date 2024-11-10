@@ -35,6 +35,7 @@ services:
           - node.labels.monitoring == true
       labels:
         - traefik.enable=true
+        - traefik.docker.network=monitoring_default
         - traefik.http.routers.grafana.entrypoints=websecure
         - traefik.http.routers.grafana.rule=Host(`grafana.kahfads.com`)
         - traefik.http.routers.grafana.tls=true
@@ -51,6 +52,7 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
       - GF_USERS_ALLOW_SIGN_UP=false
     networks:
+      - default
       - logging
 
   prometheus:
@@ -144,6 +146,10 @@ volumes:
   prometheus-data:
 
 networks:
+  default:
+    name: monitoring_default
+    driver: overlay
+    attachable: true
   logging:
     external: true
     name: logging_default

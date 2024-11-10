@@ -42,6 +42,7 @@ x-web-env: &django-env
     - ADVERTISER_TOPIC_PERFORMANCE=42
     - ADSERVER_ETHICALADS_BRANDING=True
   networks:
+    - default
     - logging
 
 services:
@@ -56,6 +57,7 @@ services:
     deploy:
       labels:
         - traefik.enable=true
+        - traefik.docker.network=ethical_ad_server_default
         - traefik.http.routers.django-http.entrypoints=web
         - traefik.http.routers.django-http.rule=Host(`kahfads.com`) || Host(`www.kahfads.com`)
         - traefik.http.routers.django-http.middlewares=django-mw1,django-mw2
@@ -67,6 +69,7 @@ services:
         - traefik.http.middlewares.django-mw1.redirectscheme.scheme=https
         - traefik.http.middlewares.django-mw1.redirectscheme.permanent=true
         - traefik.http.middlewares.django-mw2.forwardauth.trustForwardHeader=true
+        - collect_logs=true
 
   postgres:
     image: kahfads${ENV}.azurecr.io/ethical-adserver/postgres:latest
@@ -140,6 +143,10 @@ services:
       - "5433:5432"
 
 networks:
+  default:
+    name: ethical_ad_server_default
+    driver: overlay
+    attachable: true
   logging:
     external: true
     name: logging_default

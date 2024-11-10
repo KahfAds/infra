@@ -45,6 +45,7 @@ resource "azurerm_linux_virtual_machine" "leader" {
   provisioner "remote-exec" {
     inline = concat(
       local.docker_install,
+      local.docker_plugins,
       local.swarm_init,
       local.registry_login
     )

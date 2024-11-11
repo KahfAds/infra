@@ -18,7 +18,7 @@ resource "docker_config" "this" {
   for_each = local.docker_configs
 
   data = base64encode(each.value.content)
-  name = "${each.key}_v${each.value.version}"
+  name = "${each.key}_${md5(each.value.content)}"
 
   lifecycle {
     create_before_destroy = true

@@ -29,6 +29,9 @@ locals {
     }))
     qrc = base64encode(templatefile("${path.module}/stacks/qrc/docker-compose.yaml", {
       APP_CONFIG_NAME = docker_config.this[local.docker_configs.qrc_app.name].name
+      AZURE_STORAGE_ACCOUNT_HOST = "${azurerm_private_dns_a_record.qrm_nfs_dns_record.name}.${azurerm_private_dns_zone.storage_blob_dns.name}"
+      AZURE_STORAGE_ACCOUNT      = azurerm_storage_account.qrm.name
+      volume = azurerm_storage_container.qrm_uploads.name
     }))
   }
 }

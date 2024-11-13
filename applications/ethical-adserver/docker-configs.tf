@@ -13,7 +13,7 @@ locals {
       content = templatefile("${path.module}/stacks/qrc/.env", {
         APP_ENV = "production"
         APP_KEY = var.qrc.app_key
-        APP_DEBUG = true
+        APP_DEBUG = false
         APP_URL = var.qrc.app_url
         DB_CONNECTION = "pgsql"
         DB_HOST = azurerm_postgresql_flexible_server.this.fqdn

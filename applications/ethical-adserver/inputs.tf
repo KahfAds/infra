@@ -33,5 +33,6 @@ variable "qrc" {
   type = object({
     app_key = string
     app_url = string
+    ip_stack_access_key = string
   })
 }

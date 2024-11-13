@@ -66,6 +66,7 @@ services:
       - ad_server
       - monitoring
       - portainer
+      - qrc
 networks:
   ${network_name}:
     name: ${network_name}
@@ -79,6 +80,9 @@ networks:
     external: true
   portainer:
     name: portainer_agent_network
+    external: true
+  qrc:
+    name: qrc_default
     external: true
 
 

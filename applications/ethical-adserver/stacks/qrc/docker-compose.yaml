@@ -1,27 +1,35 @@
 services:
   app:
     image: kahfadstest.azurecr.io/qr-code-mgmt/app:latest
-    platform: linux/amd64
-    restart: unless-stopped
     depends_on:
       - redis
     volumes:
-      - qrc_config:/app/config
       - qrc_storage:/app/storage
-    env_file:
-      - .env
-    ports:
-      - "8000:8000"
     configs:
       - source: app
         target: /app/.env
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.qrc-http.entrypoints=web
+        - traefik.http.routers.qrc-http.rule=Host(`qr.kahfads.com`)
+        - traefik.http.routers.qrc-http.middlewares=qrc-mw1,qrc-mw2
+        - traefik.http.routers.qrc-https.middlewares=qrc-mw3
+        - traefik.http.routers.qrc-https.entrypoints=websecure
+        - traefik.http.routers.qrc-https.rule=Host(`qr.kahfads.com`)
+        - traefik.http.routers.qrc-https.tls=true
+        - traefik.http.routers.qrc-https.tls.certresolver=letsEncrypt
+        - traefik.http.services.qrc.loadbalancer.server.port=8000
+        - traefik.http.middlewares.qrc-mw1.redirectscheme.scheme=https
+        - traefik.http.middlewares.qrc-mw1.redirectscheme.permanent=true
+        - traefik.http.middlewares.qrc-mw2.forwardauth.trustForwardHeader=true
+        - traefik.http.middlewares.qrc-mw3.plugin.cloudflarewarp.disableDefault=false
+
 
   redis:
     image: redis:alpine
-    restart: unless-stopped
 
 volumes:
-  qrc_config:
   qrc_storage:
 
 configs:

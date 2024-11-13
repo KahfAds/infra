@@ -27,9 +27,9 @@ locals {
       LOKI_CONFIG_NAME = docker_config.this[local.docker_configs.loki.name].name
       PROMTAIL_CONFIG_NAME = docker_config.this[local.docker_configs.promtail.name].name
     }))
-    # qrc = base64encode(templatefile("${path.module}/stacks/qrc/docker-compose.yml", {
-    #
-    # }))
+    qrc = base64encode(templatefile("${path.module}/stacks/qrc/docker-compose.yaml", {
+      APP_CONFIG_NAME = docker_config.this[local.docker_configs.qrc_app.name].name
+    }))
   }
 }
 

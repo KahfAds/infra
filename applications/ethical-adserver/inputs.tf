@@ -28,3 +28,10 @@ variable "cdn_sku" {
     error_message = "The cdn_sku must be one of the following: Standard_Akamai, Standard_Microsoft, Standard_Verizon, Premium_Verizon."
   }
 }
+
+variable "qrc" {
+  type = object({
+    app_key = string
+    app_url = string
+  })
+}

@@ -1,0 +1,30 @@
+services:
+  app:
+    image: kahfadstest.azurecr.io/qr-code-mgmt/app:latest
+    platform: linux/amd64
+    restart: unless-stopped
+    depends_on:
+      - redis
+    volumes:
+      - qrc_config:/app/config
+      - qrc_storage:/app/storage
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    configs:
+      - source: app
+        target: /app/.env
+
+  redis:
+    image: redis:alpine
+    restart: unless-stopped
+
+volumes:
+  qrc_config:
+  qrc_storage:
+
+configs:
+  app:
+    name: ${APP_CONFIG_NAME}
+    external: true

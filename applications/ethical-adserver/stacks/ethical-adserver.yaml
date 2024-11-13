@@ -42,6 +42,7 @@ x-web-env: &django-env
     - ADVERTISER_TOPIC_PERFORMANCE=42
     - ADSERVER_ETHICALADS_BRANDING=True
     - CORS_ALLOW_ALL_ORIGINS=true
+    - SECURE_REFERRER_POLICY=no-referrer
   networks:
     - default
     - logging

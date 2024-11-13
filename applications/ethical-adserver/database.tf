@@ -79,6 +79,17 @@ resource "azurerm_postgresql_flexible_server_database" "revive_ad_server" {
   }
 }
 
+resource "azurerm_postgresql_flexible_server_database" "qr_code_management" {
+  name      = "qr-code-management"
+  server_id = azurerm_postgresql_flexible_server.this.id
+  collation = "en_US.utf8"
+  charset   = "utf8"
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
 resource "azurerm_postgresql_flexible_server_configuration" "database" {
   name      = "require_secure_transport"
   server_id = azurerm_postgresql_flexible_server.this.id

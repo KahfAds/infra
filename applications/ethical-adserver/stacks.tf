@@ -23,10 +23,13 @@ locals {
     prune         = base64encode(file("${path.module}/stacks/prune-nodes.yaml"))
     swarm-cronjob = base64encode(file("${path.module}/stacks/swarm-cronjob.yaml"))
     proxy         = local.stack_proxy
-    logging = base64encode(templatefile("${path.module}/stacks/logging.yaml", {
+    logging = base64encode(templatefile("${path.module}/stacks/logging/docker-compose.yaml", {
       LOKI_CONFIG_NAME = docker_config.this[local.docker_configs.loki.name].name
       PROMTAIL_CONFIG_NAME = docker_config.this[local.docker_configs.promtail.name].name
     }))
+    # qrc = base64encode(templatefile("${path.module}/stacks/qrc/docker-compose.yml", {
+    #
+    # }))
   }
 }
 

@@ -15,10 +15,7 @@ locals {
       POSTGRES_PASSWORD = random_password.database.result
       DEFAULT_FILE_STORAGE_HOSTNAME = "media.kahfads.com"
     }))
-    monitoring = base64encode(templatefile("${path.module}/stacks/monitoring.yaml", {
-      GRAFANA_USER     = "admin"
-      GRAFANA_PASSWORD = "4U0T1&BrlWAL"
-    }))
+    monitoring = base64encode(module.monitoring.stack)
     portainer     = base64encode(file("${path.module}/stacks/portainer.yaml"))
     prune         = base64encode(file("${path.module}/stacks/prune-nodes.yaml"))
     swarm-cronjob = base64encode(file("${path.module}/stacks/swarm-cronjob.yaml"))
@@ -27,12 +24,7 @@ locals {
       LOKI_CONFIG_NAME = docker_config.this[local.docker_configs.loki.name].name
       PROMTAIL_CONFIG_NAME = docker_config.this[local.docker_configs.promtail.name].name
     }))
-    qrc = base64encode(templatefile("${path.module}/stacks/qrc/docker-compose.yaml", {
-      APP_CONFIG_NAME = docker_config.this[local.docker_configs.qrc_app.name].name
-      AZURE_STORAGE_ACCOUNT_HOST = "${azurerm_private_dns_a_record.qrm_nfs_dns_record.name}.${azurerm_private_dns_zone.storage_blob_dns.name}"
-      AZURE_STORAGE_ACCOUNT      = azurerm_storage_account.qrm.name
-      volume = azurerm_storage_container.qrm_uploads.name
-    }))
+    qrm = base64encode(module.qrm.stack)
   }
 }
 

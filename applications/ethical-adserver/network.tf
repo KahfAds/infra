@@ -13,6 +13,13 @@ locals {
       prefix = "172.16.3.0/24"
     }
   ]
+
+  subnet_objects = [ for idx, subnet in local.subnets:
+    {
+      id = module.core_network.vnet_subnets[idx]
+      name = subnet.name
+    }
+  ]
 }
 
 module "core_network" {

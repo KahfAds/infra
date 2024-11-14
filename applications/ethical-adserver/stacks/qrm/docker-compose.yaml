@@ -1,0 +1,77 @@
+services:
+  app:
+    image: kahfadstest.azurecr.io/qr-code-mgmt/app:latest
+    depends_on:
+      - redis
+    volumes:
+      - qrm:/app/storage/app/public/logos
+      - framework:/app/storage/framework
+      - logs:/app/storage/logs
+    configs:
+      - source: app
+        target: /app/.env
+    networks:
+      - default
+      - proxy
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.qrm-http.entrypoints=web
+        - traefik.http.routers.qrm-http.rule=Host(`qr.kahfads.com`)
+        - traefik.http.routers.qrm-http.middlewares=qrm-mw1,qrm-mw2
+        - traefik.http.routers.qrm-https.middlewares=qrm-mw3
+        - traefik.http.routers.qrm-https.entrypoints=websecure
+        - traefik.http.routers.qrm-https.rule=Host(`qr.kahfads.com`)
+        - traefik.http.routers.qrm-https.tls=true
+        - traefik.http.routers.qrm-https.tls.certresolver=letsEncrypt
+        - traefik.http.services.qrm.loadbalancer.server.port=8000
+        - traefik.http.middlewares.qrm-mw1.redirectscheme.scheme=https
+        - traefik.http.middlewares.qrm-mw1.redirectscheme.permanent=true
+        - traefik.http.middlewares.qrm-mw2.forwardauth.trustForwardHeader=true
+        - traefik.http.middlewares.qrm-mw3.plugin.cloudflarewarp.disableDefault=false
+
+  echo:
+    image: mendhak/http-https-echo:31
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.qrm-echo-http.entrypoints=web
+        - traefik.http.routers.qrm-echo-http.rule=Host(`echo.kahfads.com`)
+        - traefik.http.routers.qrm-echo-http.middlewares=qrm-echo-mw1,qrm-echo-mw2
+        - traefik.http.routers.qrm-echo-https.middlewares=qrm-echo-mw3
+        - traefik.http.routers.qrm-echo-https.entrypoints=websecure
+        - traefik.http.routers.qrm-echo-https.rule=Host(`echo.kahfads.com`)
+        - traefik.http.routers.qrm-echo-https.tls=true
+        - traefik.http.routers.qrm-echo-https.tls.certresolver=letsEncrypt
+        - traefik.http.services.qrm-echo.loadbalancer.server.port=8080
+        - traefik.http.middlewares.qrm-echo-mw1.redirectscheme.scheme=https
+        - traefik.http.middlewares.qrm-echo-mw1.redirectscheme.permanent=true
+        - traefik.http.middlewares.qrm-echo-mw2.forwardauth.trustForwardHeader=true
+        - traefik.http.middlewares.qrm-echo-mw3.plugin.cloudflarewarp.disableDefault=false
+
+  redis:
+    image: redis:alpine
+
+volumes:
+  qrm:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "nfsvers=3,addr=${NFS_ENDPOINT},nolock,soft,rw"
+      device: ":/${NFS_DEVICE}"
+  framework:
+  logs:
+
+configs:
+  app:
+    name: ${APP_CONFIG_NAME}
+    external: true
+
+networks:
+  default:
+    name: qrm_default
+    driver: overlay
+    attachable: true
+  proxy:
+    name: proxy
+    external: true

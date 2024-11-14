@@ -8,13 +8,13 @@ locals {
       name = "promtail"
       content = file("${path.module}/stacks/logging/promtail.yaml")
     },
-    qrc_app = {
-      name = "qrc_app"
-      content = templatefile("${path.module}/stacks/qrc/.env", {
+    qrm_app = {
+      name = "qrm_app"
+      content = templatefile("${path.module}/stacks/qrm/.env", {
         APP_ENV = "production"
-        APP_KEY = var.qrc.app_key
+        APP_KEY = var.qrm.app_key
         APP_DEBUG = false
-        APP_URL = var.qrc.app_url
+        APP_URL = var.qrm.app_url
         DB_CONNECTION = "pgsql"
         DB_HOST = azurerm_postgresql_flexible_server.this.fqdn
         DB_PORT = 5432
@@ -23,7 +23,7 @@ locals {
         DB_PASSWORD = azurerm_postgresql_flexible_server.this.administrator_password
         MIX_PUSHER_APP_KEY = "xxxx"
         MIX_PUSHER_APP_CLUSTER = "xxx"
-        IP_STACK_ACCESS_KEY = var.qrc.ip_stack_access_key
+        IP_STACK_ACCESS_KEY = var.qrm.ip_stack_access_key
       })
     }
   }

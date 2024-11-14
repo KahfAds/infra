@@ -29,7 +29,7 @@ variable "cdn_sku" {
   }
 }
 
-variable "qrc" {
+variable "qrm" {
   type = object({
     app_key = string
     app_url = string

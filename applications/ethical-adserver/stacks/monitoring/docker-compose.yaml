@@ -32,7 +32,6 @@ services:
       placement:
         constraints:
           - node.role == manager
-          - node.labels.monitoring == true
       labels:
         - traefik.enable=true
         - traefik.docker.network=monitoring_default
@@ -69,7 +68,6 @@ services:
       placement:
         constraints:
           - node.role == manager
-          - node.labels.monitoring == true
     volumes:
       - type: volume
         source: prometheus-data
@@ -143,6 +141,11 @@ services:
 
 volumes:
   grafana-data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "nfsvers=3,addr=${NFS_ENDPOINT},nolock,soft,rw"
+      device: ":/${NFS_DEVICE}"
   prometheus-data:
 
 networks:

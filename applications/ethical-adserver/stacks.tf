@@ -2,9 +2,9 @@ locals {
   stacks = {
     ethical_ad_server = base64encode(templatefile("${path.module}/stacks/ethical-adserver.yaml", {
       ENV                = local.env
-      AZURE_ACCOUNT_NAME = azurerm_storage_account.this.name
-      AZURE_ACCOUNT_KEY = azurerm_storage_account.this.primary_access_key
-      AZURE_CONTAINER    = azurerm_storage_container.this.name
+      AZURE_ACCOUNT_NAME = module.blob.account
+      AZURE_ACCOUNT_KEY = module.blob.primary_access_key
+      AZURE_CONTAINER    = "ethicaladserver"
       SENDGRID_API_KEY   = var.sendgrid_api_key
       SECRET_KEY         = var.secret_key
       SERVER_EMAIL       = var.sender_email

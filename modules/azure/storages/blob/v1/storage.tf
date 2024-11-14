@@ -7,6 +7,11 @@ variable "resource_group" {
 
 variable "name" {}
 
+resource "azurerm_private_dns_zone" "this" {
+  name                = "privatelink.blob.core.windows.net"
+  resource_group_name = var.resource_group.name
+}
+
 resource "azurerm_storage_account" "this" {
   account_replication_type      = "LRS"
   account_tier                  = "Standard"
@@ -32,4 +37,16 @@ resource "azurerm_storage_container" "this" {
   name                  = each.key
   storage_account_name  = azurerm_storage_account.this.name
   container_access_type = each.value
+}
+
+output "account" {
+  value = azurerm_storage_account.this.name
+}
+
+output "primary_access_key" {
+  value = azurerm_storage_account.this.primary_access_key
+}
+
+output "primary_blob_host" {
+  value = azurerm_storage_account.this.primary_blob_host
 }

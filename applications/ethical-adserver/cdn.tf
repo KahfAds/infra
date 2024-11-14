@@ -76,8 +76,8 @@ resource "azurerm_cdn_endpoint" "endpoint" {
 
   origin {
     name      = "blob"
-    host_name = azurerm_storage_account.this.primary_blob_host
+    host_name = module.blob.primary_blob_host
   }
 
-  origin_host_header = azurerm_storage_account.this.primary_blob_host
+  origin_host_header = module.blob.primary_blob_host
 }

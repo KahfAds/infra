@@ -18,11 +18,9 @@ resource "azurerm_linux_virtual_machine" "manager" {
   }
 
   os_disk {
-    caching              = "ReadOnly"
+    caching              = "ReadWrite"
+    disk_size_gb = 200
     storage_account_type = "Standard_LRS"
-    diff_disk_settings {
-      option = "Local"
-    }
   }
 
   computer_name  = var.name_prefix
@@ -43,6 +41,10 @@ resource "azurerm_linux_virtual_machine" "manager" {
   identity {
     type = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.this.id]
+  }
+
+  provisioner "remote-exec" {
+    inline = ["sleep 60"]  # Adjust the delay time as needed
   }
 
   provisioner "remote-exec" {

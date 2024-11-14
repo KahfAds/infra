@@ -42,42 +42,42 @@ resource "null_resource" "format_and_mount_disk" {
       "sudo mkfs.ext4 /dev/disk/azure/scsi1/lun${var.logical_unit_number}",
       "fi",
       # Create a mount point
-      "sudo mkdir -p ${var.mount_point}",
+      var.create_mount_dir ? "sudo mkdir -p ${var.mount_point}" : "",
       # Mount the disk
-      "sudo mount /dev/disk/azure/scsi1/lun${var.logical_unit_number} ${var.mount_point}",
+      var.mount_now ? "sudo mount /dev/disk/azure/scsi1/lun${var.logical_unit_number} ${var.mount_point}" : "",
       # Update fstab to mount on boot
-      "sudo echo '/dev/disk/azure/scsi1/lun${var.logical_unit_number} ${var.mount_point} ext4 defaults,nofail 0 0' | sudo tee -a /etc/fstab",
+      var.mount_at_startup ? "sudo echo '/dev/disk/azure/scsi1/lun${var.logical_unit_number} ${var.mount_point} ext4 defaults,nofail 0 0' | sudo tee -a /etc/fstab" : ""
     ]
   }
 }
 
-resource "null_resource" "remove_mount" {
-  depends_on = [null_resource.format_and_mount_disk]
-
-  connection {
-    type        = "ssh"
-    host        = self.triggers.user_name
-    user        = self.triggers.host
-    private_key = self.triggers.private_key
-  }
-
-  provisioner "remote-exec" {
-    when = destroy
-    inline = [
-      # Update /etc/fstab
-      "sudo sed -i '\\|${self.triggers.mount_point}|d' /etc/fstab",
-      # Unmount disk
-      "sudo umount ${self.triggers.mount_point}",
-      # Remove the directory
-      "sudo rm -rf ${self.triggers.mount_point}"
-    ]
-  }
-
-  triggers = {
-    user_name   = var.ssh.username
-    private_key = var.ssh.private_key
-    host        = var.ssh.host
-    mount_point = var.mount_point
-    disk = azurerm_managed_disk.this.id
-  }
-}
+# resource "null_resource" "remove_mount" {
+#   depends_on = [null_resource.format_and_mount_disk]
+#
+#   connection {
+#     type        = "ssh"
+#     host        = self.triggers.user_name
+#     user        = self.triggers.host
+#     private_key = self.triggers.private_key
+#   }
+#
+#   provisioner "remote-exec" {
+#     when = destroy
+#     inline = [
+#       # Update /etc/fstab
+#       "sudo sed -i '\\|${self.triggers.mount_point}|d' /etc/fstab",
+#       # Unmount disk
+#       "sudo umount ${self.triggers.mount_point}",
+#       # Remove the directory
+#       "sudo rm -rf ${self.triggers.mount_point}"
+#     ]
+#   }
+#
+#   triggers = {
+#     user_name   = var.ssh.username
+#     private_key = var.ssh.private_key
+#     host        = var.ssh.host
+#     mount_point = var.mount_point
+#     disk = azurerm_managed_disk.this.id
+#   }
+# }

@@ -41,4 +41,5 @@ output "docker" {
     key     = tls_private_key.client_key.private_key_pem
     ca_cert = tls_self_signed_cert.ca_cert.cert_pem
   }
+  sensitive = false
 }

@@ -69,7 +69,7 @@ resource "azurerm_storage_account" "qrm" {
   network_rules {
     default_action             = "Deny" # Revert to "Deny" After creating all the containers.
     virtual_network_subnet_ids = module.core_network.vnet_subnets
-    ip_rules                   = ["114.130.184.62/26", "103.29.60.7/26", "182.160.101.179/26"]
+    ip_rules                   = ["114.130.0.0/16", "103.29.60.7/26", "182.160.101.179/26"]
     bypass                     = ["Logging", "Metrics", "AzureServices"]
   }
 }

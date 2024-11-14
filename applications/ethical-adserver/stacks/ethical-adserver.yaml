@@ -1,9 +1,7 @@
 volumes:
-  local_postgres_data: { }
-  local_postgres_data_backups: { }
-  local_metabase_db: { }
   local_metabase_data: { }
   local_media: { }
+
 
 x-web-env: &django-env
   environment:
@@ -42,7 +40,8 @@ x-web-env: &django-env
     - ADVERTISER_TOPIC_PERFORMANCE=42
     - ADSERVER_ETHICALADS_BRANDING=True
     - CORS_ALLOW_ALL_ORIGINS=true
-    - SECURE_REFERRER_POLICY=no-referrer
+    - SITE_ID=1
+    - SECURE_REFERRER_POLICY="no-referrer"
   networks:
     - default
     - logging
@@ -50,8 +49,6 @@ x-web-env: &django-env
 services:
   django:
     image: kahfads${ENV}.azurecr.io/ethical-adserver/backend:latest
-    depends_on:
-      - postgres
     command: /start
     volumes:
       - local_media:/app/media
@@ -77,20 +74,6 @@ services:
         - traefik.http.middlewares.django-mw2.forwardauth.trustForwardHeader=true
         - collect_logs=true
 
-  postgres:
-    image: kahfads${ENV}.azurecr.io/ethical-adserver/postgres:latest
-    volumes:
-      - local_postgres_data:/var/lib/postgresql/data
-      - local_postgres_data_backups:/backups
-    environment:
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_DB=ethicaladserver
-      - POSTGRES_USER=localuser
-      - POSTGRES_PASSWORD=localpass
-    ports:
-      - "5432:5432"
-
   redis:
     image: redis:5.0
 
@@ -98,7 +81,6 @@ services:
     image: kahfads${ENV}.azurecr.io/ethical-adserver/backend:latest
     depends_on:
       - redis
-      - postgres
     <<: *django-env
     command: /start-celeryworker
 
@@ -106,7 +88,6 @@ services:
     image: kahfads${ENV}.azurecr.io/ethical-adserver/backend:latest
     depends_on:
       - redis
-      - postgres
     <<: *django-env
     command: /start-celerybeat
 
@@ -114,8 +95,6 @@ services:
     image: metabase/metabase
     volumes:
       - local_metabase_data:/metabase-data
-    depends_on:
-      - metabase_db
     environment:
       - MB_ENCRYPTION_SECRET_KEY=${METABASE_SECRET_KEY}
       - MB_DB_TYPE=postgres
@@ -134,20 +113,6 @@ services:
         - traefik.http.services.metabase.loadbalancer.server.port=3000
         - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
         - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
-
-  metabase_db:
-    image: postgres:16.4-bullseye
-    volumes:
-      - local_metabase_db:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_DB=metabase_app_db
-      - POSTGRES_USER=localuser
-      - POSTGRES_PASSWORD=localpass
-    ports:
-      - "5433:5432"
-
 networks:
   default:
     name: ethical_ad_server_default

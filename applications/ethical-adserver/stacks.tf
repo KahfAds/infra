@@ -57,7 +57,7 @@ resource "null_resource" "stack_deployments" {
         "sudo az acr login --name ${lower(registry_name)}"
       ],
       [
-        "echo '${base64decode(each.value)}' | sudo docker stack deploy --with-registry-auth --compose-file - ${each.key}"
+        "echo '${nonsensitive(sensitive(base64decode(each.value)))}' | sudo docker stack deploy --with-registry-auth --prune --compose-file - ${each.key}"
       ]
     )
   }

@@ -4,14 +4,13 @@ services:
     depends_on:
       - redis
     volumes:
-      - storage:/app/storage
+      - ${volume}:/app/storage/app/public/logos
+      - framework:/app/storage/framework
+      - logs:/app/storage/logs
     configs:
       - source: app
         target: /app/.env
     deploy:
-      placement:
-        constraints:
-          - node.labels.qrm == true
       labels:
         - traefik.enable=true
         - traefik.http.routers.qrc-http.entrypoints=web
@@ -59,7 +58,6 @@ volumes:
       device: ":/${AZURE_STORAGE_ACCOUNT}/${volume}"
   framework:
   logs:
-  storage:
 configs:
   app:
     name: ${APP_CONFIG_NAME}

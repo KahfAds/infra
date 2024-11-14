@@ -41,3 +41,18 @@ variable "ssh" {
 }
 
 variable "mount_point" {}
+
+variable "mount_now" {
+  type = bool
+  default = true
+}
+
+variable "create_mount_dir" {
+  type = bool
+  default = true
+}
+
+variable "mount_at_startup" {
+  type = bool
+  default = true
+}

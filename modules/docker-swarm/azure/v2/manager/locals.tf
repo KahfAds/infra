@@ -14,7 +14,7 @@ locals {
   program = [
     "bash",
     "${path.module}/scripts/query-swarm.sh",
-    base64encode(module.ssh_key.private_key_pem),
+    base64encode(nonsensitive(module.ssh_key.private_key_pem)),
     local.admin_username,
     azurerm_public_ip.primary.ip_address
   ]
@@ -33,8 +33,9 @@ locals {
     # Step 2: Write server certificate
     "echo '${tls_locally_signed_cert.server_cert.cert_pem}' | sudo tee /etc/docker/certs/server-cert.pem",
     # Step 3: Write server private key
-    "echo '${tls_private_key.server_key.private_key_pem}' | sudo tee /etc/docker/certs/server-key.pem",
+    "echo '${nonsensitive(tls_private_key.server_key.private_key_pem)}' | sudo tee /etc/docker/certs/server-key.pem",
     # Step 4: Install Docker and start swarm
+    "sudo apt-get clean",
     "sudo apt-get update",
     "sudo apt-get install -y docker.io uidmap jq nfs-common",
     "yes | sudo ufw enable",

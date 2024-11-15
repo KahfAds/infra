@@ -41,7 +41,8 @@ x-web-env: &django-env
     - ADSERVER_ETHICALADS_BRANDING=True
     - CORS_ALLOW_ALL_ORIGINS=true
     - SITE_ID=1
-    - SECURE_REFERRER_POLICY=no-referrer
+    - SECURE_REFERRER_POLICY=origin
+    - CSRF_TRUSTED_ORIGINS=https://kahfads.com,https://www.kahfads.com
   networks:
     - default
     - logging

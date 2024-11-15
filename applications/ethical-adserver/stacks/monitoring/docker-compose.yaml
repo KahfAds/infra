@@ -55,12 +55,15 @@ services:
       - logging
 
   prometheus:
-    image: portainer/template-swarm-monitoring:prometheus-v2.44.0
+    image: prom/prometheus:v3.0.0
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--log.level=error'
       - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.time=7d'
+      - '--storage.tsdb.retention.time=24h'
+    configs:
+      - source: prometheus
+        target: /etc/prometheus/prometheus.yml
     deploy:
       replicas: 1
       restart_policy:
@@ -110,6 +113,10 @@ services:
         source: /dev/disk
         target: /dev/disk
         read_only: true
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        read_only: true
 
   node-exporter:
     image: prom/node-exporter:v1.5.0
@@ -156,3 +163,8 @@ networks:
   logging:
     external: true
     name: logging_default
+
+configs:
+  prometheus:
+    name: ${PROMETHEUS_CONFIG_NAME}
+    external: true

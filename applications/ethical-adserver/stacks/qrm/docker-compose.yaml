@@ -19,7 +19,6 @@ services:
         - traefik.http.routers.qrm-http.entrypoints=web
         - traefik.http.routers.qrm-http.rule=Host(`qr.kahfads.com`)
         - traefik.http.routers.qrm-http.middlewares=qrm-mw1,qrm-mw2
-        - traefik.http.routers.qrm-https.middlewares=qrm-mw3
         - traefik.http.routers.qrm-https.entrypoints=websecure
         - traefik.http.routers.qrm-https.rule=Host(`qr.kahfads.com`)
         - traefik.http.routers.qrm-https.tls=true
@@ -28,7 +27,6 @@ services:
         - traefik.http.middlewares.qrm-mw1.redirectscheme.scheme=https
         - traefik.http.middlewares.qrm-mw1.redirectscheme.permanent=true
         - traefik.http.middlewares.qrm-mw2.forwardauth.trustForwardHeader=true
-        - traefik.http.middlewares.qrm-mw3.plugin.cloudflarewarp.disableDefault=false
 
   echo:
     image: mendhak/http-https-echo:31
@@ -48,6 +46,9 @@ services:
         - traefik.http.middlewares.qrm-echo-mw1.redirectscheme.permanent=true
         - traefik.http.middlewares.qrm-echo-mw2.forwardauth.trustForwardHeader=true
         - traefik.http.middlewares.qrm-echo-mw3.plugin.cloudflarewarp.disableDefault=false
+    networks:
+      - default
+      - proxy
 
   redis:
     image: redis:alpine

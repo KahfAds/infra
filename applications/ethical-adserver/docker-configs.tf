@@ -25,6 +25,10 @@ locals {
         MIX_PUSHER_APP_CLUSTER = "xxx"
         IP_STACK_ACCESS_KEY = var.qrm.ip_stack_access_key
       })
+    },
+    prometheus = {
+      name = "prometheus"
+      content = file("${path.module}/stacks/monitoring/prometheus.yaml")
     }
   }
 }

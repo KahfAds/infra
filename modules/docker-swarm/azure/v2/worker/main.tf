@@ -242,4 +242,28 @@ resource "azurerm_network_security_group" "node" {
     source_address_prefix  = "*"
     destination_address_prefix = "*"
   }
+
+  security_rule {
+    name                       = "DockerPrometheus"
+    priority                   = 1014
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "9323"
+    source_address_prefix      = var.network.prefix
+    destination_address_prefix = var.network.prefix
+  }
+
+  security_rule {
+    name                       = "PrometheusNodeExporter"
+    priority                   = 1015
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "9100"
+    source_address_prefix      = var.network.prefix
+    destination_address_prefix = var.network.prefix
+  }
 }

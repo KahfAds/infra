@@ -46,6 +46,8 @@ locals {
     "sudo ufw allow 7946/udp",
     "sudo ufw allow 4789/udp",
     "sudo ufw allow 8080/tcp",
+    "sudo ufw allow 9323/tcp",
+    "sudo ufw allow 9100/tcp",
     "sudo ufw reload",
     # Step 5: Configure Docker with TLS certs
     "sudo sed -i 's|ExecStart=/usr/bin/dockerd -H fd://|ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:2376 --tlsverify --tlscacert=/etc/docker/certs/ca.pem --tlscert=/etc/docker/certs/server-cert.pem --tlskey=/etc/docker/certs/server-key.pem|' /lib/systemd/system/docker.service",

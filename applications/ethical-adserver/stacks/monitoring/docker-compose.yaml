@@ -56,9 +56,12 @@ services:
 
   prometheus:
     image: prom/prometheus:v3.0.0
+    networks:
+      - default
+      - socat
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--log.level=error'
+      - '--log.level=debug'
       - '--storage.tsdb.path=/prometheus'
       - '--storage.tsdb.retention.time=24h'
     configs:
@@ -79,6 +82,33 @@ services:
         source: /var/run/docker.sock
         target: /var/run/docker.sock
         read_only: true
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=monitoring_default
+      - traefik.http.routers.prometheus.entrypoints=websecure
+      - traefik.http.routers.prometheus.rule=Host(`prometheus.kahfads.com`)
+      - traefik.http.routers.prometheus.tls=true
+      - traefik.http.routers.prometheus.tls.certresolver=letsEncrypt
+      - traefik.http.services.prometheus.loadbalancer.server.port=9090
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
+
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    networks:
+      - host
+    command:
+      - "--path.rootfs=/host"
+    deploy:
+      mode: global
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    volumes:
+      - /:/host:ro,rslave
+
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:v0.47.0
@@ -93,58 +123,31 @@ services:
       labels:
         - prometheus-job=cadvisor
     volumes:
-      - type: bind
-        source: /
-        target: /rootfs
-        read_only: true
-      - type: bind
-        source: /var/run
-        target: /var/run
-        read_only: true
-      - type: bind
-        source: /sys
-        target: /sys
-        read_only: true
-      - type: bind
-        source: /var/lib/docker
-        target: /var/lib/docker
-        read_only: true
-      - type: bind
-        source: /dev/disk
-        target: /dev/disk
-        read_only: true
-      - type: bind
-        source: /var/run/docker.sock
-        target: /var/run/docker.sock
-        read_only: true
+      - /:/rootfs:ro
+      - /var/run:/var/run:true
+      - /sys:/sys:true
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
 
-  node-exporter:
-    image: prom/node-exporter:v1.5.0
-    command:
-      - "--path.sysfs=/host/sys"
-      - "--path.procfs=/host/proc"
-      - "--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)"
-      - "--no-collector.ipvs"
+  docker-api-socat:
+    image: tecnativa/docker-socket-proxy:0.1
+    networks:
+      - socat
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      NODES: 1
+      NETWORKS: 1
+      SERVICES: 1
+      TASKS: 1
+    logging:
+      driver: none
     deploy:
       mode: global
-      resources:
-        limits:
-          memory: 128M
-        reservations:
-          memory: 64M
-    volumes:
-      - type: bind
-        source: /
-        target: /rootfs
-        read_only: true
-      - type: bind
-        source: /proc
-        target: /host/proc
-        read_only: true
-      - type: bind
-        source: /sys
-        target: /host/sys
-        read_only: true
+      placement:
+        constraints:
+          - node.role == manager
 
 volumes:
   grafana-data:
@@ -163,6 +166,14 @@ networks:
   logging:
     external: true
     name: logging_default
+  socat:
+    name: socat
+    driver: overlay
+    attachable: true
+  host:
+    name: host
+    driver: host
+    external: true
 
 configs:
   prometheus:

@@ -46,6 +46,7 @@ resource "azurerm_linux_virtual_machine" "leader" {
 
   provisioner "remote-exec" {
     inline = concat(
+      ["sudo hostnamectl set-hostname ${self.name}"],
       local.docker_install,
       local.docker_plugins,
       local.swarm_init,
@@ -243,6 +244,28 @@ resource "azurerm_network_security_group" "primary" {
     destination_port_range = "53"
     source_address_prefix  = "*"
     destination_address_prefix = "*"
+  }
+  security_rule {
+    name                       = "DockerPrometheus"
+    priority                   = 1013
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "9323"
+    source_address_prefix      = var.network.prefix
+    destination_address_prefix = var.network.prefix
+  }
+  security_rule {
+    name                       = "PrometheusNodeExporter"
+    priority                   = 1014
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "9100"
+    source_address_prefix      = var.network.prefix
+    destination_address_prefix = var.network.prefix
   }
 }
 

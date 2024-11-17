@@ -19,7 +19,7 @@ scrape_configs:
       - names:
           - 'tasks.node-exporter'
         type: 'A'
-        port: 9100/prometheus
+        port: 9100
 
   - job_name: 'docker'
     dockerswarm_sd_configs:

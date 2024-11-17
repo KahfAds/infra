@@ -7,7 +7,7 @@ sudo loginctl enable-linger azure-user
 # Configure firewall to enable Docker Swarm ports
 yes | sudo ufw enable
 
-sudo ufw allow 2377,7946/tcp
+sudo ufw allow 2377,7946,9323,9100/tcp
 sudo ufw allow 4789,7946/udp
 sudo ufw reload
 

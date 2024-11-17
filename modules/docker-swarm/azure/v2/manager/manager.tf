@@ -49,6 +49,7 @@ resource "azurerm_linux_virtual_machine" "manager" {
 
   provisioner "remote-exec" {
     inline = concat(
+      ["sudo hostnamectl set-hostname ${self.name}"],
       local.docker_install,
       local.docker_plugins,
       local.registry_login,

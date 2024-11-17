@@ -17,5 +17,6 @@ sudo ufw allow 7946/tcp
 sudo ufw allow 7946/udp
 sudo ufw allow 4789/udp
 sudo ufw allow 8080/tcp
+sudo ufw allow 9323/tcp
 
 sudo ufw reload

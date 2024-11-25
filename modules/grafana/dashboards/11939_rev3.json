@@ -618,7 +618,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum((node_filesystem_free_bytes{device=\"rootfs\", mountpoint=\"/\"} / node_filesystem_size_bytes{device=\"rootfs\", mountpoint=\"/\"}) * on(instance) group_left(node_name) node_meta{node_id=~\"$node_id\"} * 100) / count(node_meta * on(instance) group_left(node_name) node_meta{node_id=~\"$node_id\"})",
+          "expr": "sum((node_filesystem_free_bytes{device=\"/dev/root\", mountpoint=\"/\"} / node_filesystem_size_bytes{device=\"/dev/root\", mountpoint=\"/\"}) * on(instance) group_left(node_name) node_meta{node_id=~\"$node_id\"} * 100) / count(node_meta * on(instance) group_left(node_name) node_meta{node_id=~\"$node_id\"})",
           "format": "time_series",
           "intervalFactor": 2,
           "legendFormat": "",

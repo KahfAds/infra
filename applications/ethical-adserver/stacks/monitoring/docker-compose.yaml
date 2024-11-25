@@ -52,7 +52,6 @@ services:
       - GF_USERS_ALLOW_SIGN_UP=false
     networks:
       - default
-      - logging
 
   prometheus:
     image: prom/prometheus:v3.0.0
@@ -94,11 +93,13 @@ services:
       - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
 
   node-exporter:
-    image: quay.io/prometheus/node-exporter:latest
+    image: mithucste30/node-exporter:v1.8.2
     networks:
       - host
     command:
-      - "--path.rootfs=/host"
+      - "--path.rootfs=/rootfs"
+    environment:
+      - NODE_ID={{.Node.ID}}
     deploy:
       mode: global
       resources:
@@ -107,7 +108,8 @@ services:
         reservations:
           memory: 64M
     volumes:
-      - /:/host:ro,rslave
+      - /:/rootfs:ro,rslave
+      - /etc/hostname:/etc/nodename
 
 
   cadvisor:
@@ -163,9 +165,6 @@ networks:
     name: monitoring_default
     driver: overlay
     attachable: true
-  logging:
-    external: true
-    name: logging_default
   socat:
     name: socat
     driver: overlay

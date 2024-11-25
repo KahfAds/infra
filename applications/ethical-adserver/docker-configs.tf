@@ -1,13 +1,13 @@
 locals {
   docker_configs = {
-    loki = {
-      name = "loki"
-      content = file("${path.module}/stacks/logging/loki.yaml")
-    }
-    promtail = {
-      name = "promtail"
-      content = file("${path.module}/stacks/logging/promtail.yaml")
-    },
+    # loki = {
+    #   name = "loki"
+    #   content = file("${path.module}/stacks/logging/loki.yaml")
+    # }
+    # promtail = {
+    #   name = "promtail"
+    #   content = file("${path.module}/stacks/logging/promtail.yaml")
+    # },
     qrm_app = {
       name = "qrm_app"
       content = templatefile("${path.module}/stacks/qrm/.env", {

@@ -45,7 +45,6 @@ x-web-env: &django-env
     - CSRF_TRUSTED_ORIGINS=https://kahfads.com,https://www.kahfads.com
   networks:
     - default
-    - logging
 
 services:
   django:
@@ -119,6 +118,3 @@ networks:
     name: ethical_ad_server_default
     driver: overlay
     attachable: true
-  logging:
-    external: true
-    name: logging_default

@@ -2,7 +2,6 @@ volumes:
   local_metabase_data: { }
   local_media: { }
 
-
 x-web-env: &django-env
   environment:
     - USE_DOCKER=true

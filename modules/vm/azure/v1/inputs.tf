@@ -18,8 +18,6 @@ variable "size" {
   default = "Standard_B2s"
 }
 
-variable "availability_set_id" {}
-
 
 variable "public_key" {
   type = string
@@ -30,23 +28,52 @@ variable "custom_data" {
   default = ""
 }
 
-variable "subnet_id" {}
-
 variable "private_key_pem" {}
 
-variable "remote_exec_scripts" {
-  type = list(string)
-  default = []
+# variable "remote_exec_scripts" {
+#   type = list(string)
+#   default = []
+# }
+#
+# variable "local_exec_command" {
+#   type = string
+#   default = "/bin/sh"
+# }
+
+variable "publicly_accessible" {
+  type = bool
+  default = false
 }
 
-variable "local_exec_command" {
+variable "allowed_ports" {
+  type = list(object({
+    name = string
+    port = number
+    protocol = string
+    public = bool
+  }))
+}
+
+variable "private_ip_address" {
   type = string
-  default = "/bin/sh"
 }
 
-variable "network_interface" {
+variable "network" {
+  type = object({
+    prefix = string
+  })
+}
+
+variable "subnet" {
   type = object({
     id = string
-    public_ip_address = string
+    prefix = string
   })
+}
+
+variable "file_uploads" {
+  type = list(object({
+    path = string
+    content = string
+  }))
 }

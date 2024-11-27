@@ -56,8 +56,6 @@ services:
     deploy:
       mode: replicated
       replicas: 3
-      placement:
-        max_replicas_per_node: 1
       labels:
         - traefik.enable=true
         - traefik.docker.network=ethical_ad_server_default
@@ -73,6 +71,9 @@ services:
         - traefik.http.middlewares.django-mw1.redirectscheme.permanent=true
         - traefik.http.middlewares.django-mw2.forwardauth.trustForwardHeader=true
         - collect_logs=true
+        - swarm.autoscaler=true
+        - swarm.autoscaler.maximum=6
+        - swarm.autoscaler.minimum=3
 
   redis:
     image: redis:5.0

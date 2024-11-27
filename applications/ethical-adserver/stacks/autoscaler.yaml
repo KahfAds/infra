@@ -1,0 +1,29 @@
+networks:
+  autoscale:
+  monitoring:
+    name: monitoring_default
+    external: true
+
+services:
+  this:
+    image: jcwimer/docker-swarm-autoscaler:0.1.0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - PROMETHEUS_URL=http://monitoring_prometheus:9090
+    networks:
+      - autoscale
+      - monitoring
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: "0.10"
+          memory: 128M
+        reservations:
+          cpus: "0.10"
+          memory: 64M

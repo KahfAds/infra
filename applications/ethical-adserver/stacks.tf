@@ -29,6 +29,7 @@ locals {
     #   PROMTAIL_CONFIG_NAME = docker_config.this[local.docker_configs.promtail.name].name
     # }))
     qrm = base64encode(module.qrm.stack)
+    autoscaler = base64encode(file("${path.module}/stacks/autoscaler.yaml"))
   }
 }
 

@@ -1,6 +1,6 @@
 locals {
   stacks = {
-    ethical_ad_server = base64encode(templatefile("${path.module}/stacks/ethical-adserver.yaml", {
+    ethical_ad_server = base64encode(templatefile("${path.module}/stacks/backend/docker-compose.yaml", {
       ENV                = local.env
       AZURE_ACCOUNT_NAME = module.blob.account
       AZURE_ACCOUNT_KEY = module.blob.primary_access_key
@@ -15,9 +15,13 @@ locals {
       POSTGRES_PASSWORD = random_password.database.result
       DEFAULT_FILE_STORAGE_HOSTNAME = "media.kahfads.com"
     }))
-    monitoring = base64encode(module.monitoring.stack)
+    monitoring    = base64encode(module.monitoring.stack)
     portainer     = base64encode(file("${path.module}/stacks/portainer.yaml"))
-    prune         = base64encode(file("${path.module}/stacks/prune-nodes.yaml"))
+    docker_tasks  = base64encode(templatefile("${path.module}/stacks/docker-tasks.yaml", {
+      ADDRESS = local.registry.address
+      USERNAME = local.registry.username
+      PASSWORD = local.registry.password
+    }))
     swarm-cronjob = base64encode(file("${path.module}/stacks/swarm-cronjob.yaml"))
     proxy         = local.stack_proxy
     # logging = base64encode(templatefile("${path.module}/stacks/logging/docker-compose.yaml", {

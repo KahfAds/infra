@@ -49,7 +49,15 @@ x-web-env: &django-env
 services:
   django:
     image: kahfads${ENV}.azurecr.io/ethical-adserver/backend:latest
-    command: /start
+    entrypoint: ["/start"]
+    command:
+      - "--bind=0.0.0.0:5000"
+      - "--access-logfile=-"
+      - "--worker-tmp-dir=/dev/shm"
+      - "--workers=10"
+      - "--threads=10"
+      - "--worker-class=gthread"
+      - "config.wsgi:application"
     volumes:
       - local_media:/app/media
     <<: *django-env

@@ -64,7 +64,7 @@ resource "azurerm_storage_account" "this" {
   nfsv3_enabled                 = true
   is_hns_enabled                = true
   public_network_access_enabled = true
-  https_traffic_only_enabled    = false
+  enable_https_traffic_only     = false
 
   network_rules {
     default_action             = "Deny" # Revert to "Deny" After creating all the containers.

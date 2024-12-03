@@ -6,3 +6,11 @@ output "this" {
     }
   }
 }
+
+output "sas" {
+  value = {
+    endpoint = module.blob.primary_blob_host
+    token = module.blob.sas_token
+  }
+  sensitive = true
+}

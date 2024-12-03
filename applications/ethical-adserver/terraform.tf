@@ -9,10 +9,11 @@ terraform {
   required_providers {
     azapi = {
       source = "azure/azapi"
+      version = "2.1.0"
     }
     azurerm = {
       source = "hashicorp/azurerm"
-      version = "3.116.0"
+      version = "3.108.0"
     }
     ssh = {
       source = "loafoe/ssh"

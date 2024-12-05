@@ -46,7 +46,7 @@ resource "azurerm_postgresql_flexible_server" "this" {
   administrator_login    = local.database_user
   administrator_password = random_password.database.result
 
-  sku_name   = "B_Standard_B1ms"
+  sku_name   = "GP_Standard_D2ds_v5"
   version    = "16"
   storage_mb = 65536
 
@@ -90,10 +90,22 @@ resource "azurerm_postgresql_flexible_server_database" "qr_code_management" {
   }
 }
 
-resource "azurerm_postgresql_flexible_server_configuration" "database" {
+resource "azurerm_postgresql_flexible_server_configuration" "require_secure_transport" {
   name      = "require_secure_transport"
   server_id = azurerm_postgresql_flexible_server.this.id
   value     = "on"
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "max_connections" {
+  name      = "max_connections"
+  server_id = azurerm_postgresql_flexible_server.this.id
+  value     = 1000
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "pg_bouncer" {
+  name      = "pgbouncer.enabled"
+  server_id = azurerm_postgresql_flexible_server.this.id
+  value     = true
 }
 
 resource "azurerm_postgresql_flexible_server_configuration" "extensions" {

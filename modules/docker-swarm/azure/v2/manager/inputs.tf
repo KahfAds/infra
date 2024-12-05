@@ -30,7 +30,7 @@ variable "docker_secrets" {
 }
 
 variable "size" {
-  default = "Standard_B2s"
+  default = "Standard_D2ads_v5"
 }
 
 variable "accessible_registries" {

@@ -9,7 +9,7 @@ x-web-env: &django-env
     - IPYTHONDIR=/app/.ipython
     - MEDIA_URL=https://www.kahfads.com/media/
     - REDIS_URL=redis://redis:6379/0
-    - DATABASE_URL=psql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:5432/ethicaladserver
+    - DATABASE_URL=psql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:6432/ethicaladserver #6432 pgbouncer https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-pgbouncer#switching-your-application-to-use-pgbouncer
     - METABASE_SITE_URL=https://metabase.kahfads.com
     - ADSERVER_ANALYZER_BACKEND="adserver.analyzer.backends.TextacyAnalyzerBackend"
     - COLUMNS=80
@@ -57,9 +57,9 @@ services:
       - "--bind=0.0.0.0:5000"
       - "--access-logfile=-"
       - "--worker-tmp-dir=/dev/shm"
-      - "--workers=10"
-      - "--worker-class=gthread"
-      - "config.wsgi:application"
+      - "--workers=8"
+      - "-k=uvicorn.workers.UvicornWorker"
+      - "config.asgi:application"
     volumes:
       - local_media:/app/media
     <<: *django-env

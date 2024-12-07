@@ -84,7 +84,7 @@ resource "azurerm_network_interface" "primary" {
     name                          = "ipconfig1"
     subnet_id                     = var.subnet.id
     private_ip_address_allocation = "Static"
-    private_ip_address            = var.private_ip_address
+    private_ip_address            = cidrhost(var.subnet.prefix, 10)
     public_ip_address_id          = azurerm_public_ip.primary.id
   }
 }

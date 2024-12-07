@@ -72,7 +72,8 @@ resource "azurerm_network_interface" "manager" {
   ip_configuration {
     name                          = "ipconfig1"
     subnet_id                     = var.subnet.id
-    private_ip_address_allocation = "Dynamic"
+    private_ip_address_allocation = "Static"
+    private_ip_address            = cidrhost(var.subnet.prefix, 10+1+count.index)
     public_ip_address_id          = azurerm_public_ip.manager[count.index].id
   }
 }

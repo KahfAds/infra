@@ -19,15 +19,19 @@ output "ssh" {
 
     virtual_machines = concat([
       {
-        leader = true
+        initial_leader = true
+        manager = true
         ip_address = azurerm_public_ip.primary.ip_address
         id = azurerm_linux_virtual_machine.leader.id
+        hostname = azurerm_linux_virtual_machine.leader.name
       }
     ], [ for machine in azurerm_linux_virtual_machine.manager:
       {
-        leader = false
+        initial_leader = false
+        manager = true
         ip_address = machine.public_ip_address
         id = machine.id
+        hostname = machine.name
       }
     ])
   }

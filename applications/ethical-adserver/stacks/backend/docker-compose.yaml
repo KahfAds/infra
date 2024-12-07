@@ -82,8 +82,8 @@ services:
         - traefik.http.middlewares.django-mw2.forwardauth.trustForwardHeader=true
         - collect_logs=true
         - swarm.autoscaler=true
-        - swarm.autoscaler.maximum=6
-        - swarm.autoscaler.minimum=3
+        - swarm.autoscaler.maximum=12
+        - swarm.autoscaler.minimum=6
 
   redis:
     image: redis:5.0

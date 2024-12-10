@@ -1,4 +1,6 @@
 #!/bin/bash
+# let the system know, we are running command through non-interactive channel.
+export DEBIAN_FRONTEND=noninteractive
 
 # disable kernel update message
 sudo sed -i "s/#\$nrconf{kernelhints} = -1;/\$nrconf{kernelhints} = -1;/g" /etc/needrestart/needrestart.conf

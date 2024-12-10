@@ -38,26 +38,17 @@ resource "azurerm_linux_virtual_machine" "this" {
   admin_username = var.admin_username
 
   admin_ssh_key {
-    username = var.admin_username
+    username   = var.admin_username
     public_key = var.public_key
   }
 
   custom_data = length(var.custom_data) > 0 ? base64encode(var.custom_data) : null
 
   connection {
-    user = var.admin_username
-    type = "ssh"
-    host = var.publicly_accessible ? azurerm_public_ip.this[0].ip_address : var.private_ip_address
+    user        = var.admin_username
+    type        = "ssh"
+    host        = var.publicly_accessible ? azurerm_public_ip.this[0].ip_address : var.private_ip_address
     private_key = var.private_key_pem
-  }
-
-  dynamic "provisioner" {
-    for_each = var.file_uploads
-    content {
-      type = "file"
-      content = provisioner.value.content
-      destination = provisioner.value.path
-    }
   }
 
   tags = {
@@ -71,22 +62,23 @@ resource "azurerm_network_security_group" "this" {
   resource_group_name = var.resource_group_name
 
   dynamic "security_rule" {
-    for_each = var.allowed_ports
+    for_each = zipmap(range(length(var.allowed_ports)), var.allowed_ports)
     content {
-      name = security_rule.value.name
+      name                       = security_rule.value.name
+      priority                   = 1000 + security_rule.key
       direction                  = "Inbound"
       access                     = "Allow"
       protocol                   = security_rule.value.protocol
       source_port_range          = "*"
       destination_port_range     = tostring(security_rule.value.port)
-      source_address_prefix      = security_rule.value.public ? "0.0.0.0/0" : var.network.prefix
-      destination_address_prefix = security_rule.value.public ? "0.0.0.0/0" : var.network.prefix
+      source_address_prefix      = security_rule.value.public ? "*" : var.network.prefix
+      destination_address_prefix = security_rule.value.public ? "*" : var.network.prefix
     }
   }
 }
 
 resource "azurerm_public_ip" "this" {
-  count = var.publicly_accessible ? 1 : 0
+  count               = var.publicly_accessible ? 1 : 0
   name                = "${var.name_prefix}-node-public-ip"
   location            = var.location
   resource_group_name = var.resource_group_name

@@ -70,10 +70,3 @@ variable "subnet" {
     prefix = string
   })
 }
-
-variable "file_uploads" {
-  type = list(object({
-    path = string
-    content = string
-  }))
-}

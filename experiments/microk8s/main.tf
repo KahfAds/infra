@@ -14,9 +14,13 @@ module "ssh" {
   resource_group_name = azurerm_resource_group.this.name
 }
 
+locals {
+  admin_username = "azure-user"
+}
+
 module "initiator_node" {
   source = "../../modules/vm/azure/v1"
-  admin_username = "azure-user"
+  admin_username = local.admin_username
   allowed_ports = [
     {
       name = "ssh"
@@ -62,4 +66,15 @@ module "initiator_node" {
     prefix = local.subnets[0].prefix
   }
   publicly_accessible = true
+}
+
+module "micro_k8s" {
+  source = "../../modules/microk8s/v1"
+  additional_nodes = []
+  initiator_node = {
+    host = module.initiator_node.ssh.host
+    user = local.admin_username
+    private_key = module.ssh.private_key_pem
+  }
+  install_channel = "1.30/stable"
 }

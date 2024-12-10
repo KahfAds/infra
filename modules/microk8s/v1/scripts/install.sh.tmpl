@@ -17,4 +17,4 @@ sudo apt install -y nfs-kernel-server bridge-utils open-iscsi
 sudo systemctl start iscsid
 
 # Install MicroK8s using snap
-sudo snap install microk8s --channel=1.30/stable --classic
+sudo snap install microk8s --channel=${MICROK8S_CHANNEL} --classic

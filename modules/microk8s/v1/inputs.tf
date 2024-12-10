@@ -14,9 +14,7 @@ variable "additional_nodes" {
   }))
 }
 
-variable "microk8s_channel" {
-  default = null
-}
+variable "install_channel" {}
 
 variable "cluster_token_ttl_seconds" {
   type        = number

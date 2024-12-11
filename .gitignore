@@ -9,3 +9,5 @@ applications/revive-adserver/new_plan
 *.tfvars
 **/**/new_plan
 .DS_Store
+
+modules/microk8s/v1/scripts/install.sh

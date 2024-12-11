@@ -19,7 +19,7 @@ data "template_file" "install_script" {
 }
 
 resource "local_file" "install_script" {
-  filename = "${path.module}/scripts/install.sh"
+  filename = "/tmp/scripts/install.sh"
   content = data.template_file.install_script.rendered
 }
 

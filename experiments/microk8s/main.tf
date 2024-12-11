@@ -75,6 +75,7 @@ module "micro_k8s" {
     host = module.initiator_node.ssh.host
     user = local.admin_username
     private_key = module.ssh.private_key_pem
+    private_ip = module.initiator_node.ssh.private_ip_address
   }
   install_channel = "1.30/stable"
 }

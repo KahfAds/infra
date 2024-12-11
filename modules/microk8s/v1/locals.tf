@@ -1,3 +1,11 @@
 locals {
-  nodes = concat([var.initiator_node], var.additional_nodes)
+  nodes = concat([var.initiator_node], var.master_nodes, var.worker_nodes)
+  non_initiator_nodes = concat(var.master_nodes, var.worker_nodes)
+
+  update_csr = [
+    "echo \"adding initiator node IPs to CSR.\"",
+    "sed -i 's@#MOREIPS@IP.98 = ${var.initiator_node.private_ip}\\n#MOREIPS\\n@g' /var/snap/microk8s/current/certs/csr.conf.template",
+    "sed -i 's@#MOREIPS@IP.99 = ${var.initiator_node.host}\\n#MOREIPS\\n@g' /var/snap/microk8s/current/certs/csr.conf.template",
+    "echo 'done.'"
+  ]
 }

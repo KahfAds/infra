@@ -69,7 +69,7 @@ module "initiator_node" {
 }
 
 module "master_nodes" {
-  count = 1
+  count = 0
   source = "../../modules/vm/azure/v1"
   admin_username = local.admin_username
   allowed_ports = [

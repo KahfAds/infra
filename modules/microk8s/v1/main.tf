@@ -69,29 +69,13 @@ resource "null_resource" "setup_initiator_node" {
       "microk8s enable prometheus",
       "microk8s enable cert-manager",
       "microk8s enable hostpath-storage",
-      "microk8s enable helm ",
+      "microk8s enable helm",
       "microk8s enable helm3",
       "mkdir -p /tmp/config",
       "sudo microk8s config -l > /tmp/config/client.config",
       "echo \"updating kubeconfig\"",
       "sed -i 's/127.0.0.1/${var.initiator_node.host}/g' /tmp/config/client.config",
       "chmod o+r /tmp/config/client.config"
-    ]
-  }
-}
-
-resource "null_resource" "install_addons" {
-  depends_on = [null_resource.setup_initiator_node]
-  connection {
-    type        = "ssh"
-    host        = var.initiator_node.host
-    private_key = var.initiator_node.private_key
-    user        = var.initiator_node.user
-  }
-
-  provisioner "remote-exec" {
-    inline = [ for addon in toset(var.addons):
-
     ]
   }
 }
@@ -146,17 +130,18 @@ resource "null_resource" "join_master_nodes" {
 }
 
 resource "null_resource" "remove_master_node_from_itself" {
-  depends_on = [null_resource.get_kubeconfig]
+  depends_on = [null_resource.get_kubeconfig, null_resource.remove_master_node_from_initiator]
   count = length(var.master_nodes)
+
+  connection {
+    type        = "ssh"
+    host        = self.triggers.user
+    user        = self.triggers.host
+    private_key = self.triggers.private_key
+  }
 
   provisioner "remote-exec" {
     when = destroy
-    connection {
-      type        = "ssh"
-      host        = self.triggers.user
-      user        = self.triggers.host
-      private_key = self.triggers.private_key
-    }
     inline = [
       "microk8s leave"
     ]
@@ -166,22 +151,21 @@ resource "null_resource" "remove_master_node_from_itself" {
     host        = var.master_nodes[count.index].host
     private_key = var.master_nodes[count.index].private_key
     user        = var.master_nodes[count.index].user
-    hostname    = var.master_nodes[count.index].hostname
   }
 }
 
 resource "null_resource" "remove_master_node_from_initiator" {
-  depends_on = [null_resource.remove_master_node_from_itself]
   count = length(var.master_nodes)
+
+  connection {
+    type        = "ssh"
+    host        = self.triggers.user
+    user        = self.triggers.host
+    private_key = self.triggers.private_key
+  }
 
   provisioner "remote-exec" {
     when = destroy
-    connection {
-      type        = "ssh"
-      host        = self.triggers.user
-      user        = self.triggers.host
-      private_key = self.triggers.private_key
-    }
     inline = [
       "microk8s remove-node ${self.triggers.hostname}"
     ]
@@ -223,14 +207,15 @@ resource "null_resource" "remove_worker_node_from_itself" {
   depends_on = [null_resource.get_kubeconfig]
   count = length(var.worker_nodes)
 
+  connection {
+    type        = "ssh"
+    host        = self.triggers.user
+    user        = self.triggers.host
+    private_key = self.triggers.private_key
+  }
+
   provisioner "remote-exec" {
     when = destroy
-    connection {
-      type        = "ssh"
-      host        = self.triggers.user
-      user        = self.triggers.host
-      private_key = self.triggers.private_key
-    }
     inline = [
       "microk8s leave"
     ]
@@ -248,14 +233,15 @@ resource "null_resource" "remove_worker_node_from_initiator" {
   depends_on = [null_resource.remove_worker_node_from_itself]
   count = length(var.worker_nodes)
 
+  connection {
+    type        = "ssh"
+    host        = self.triggers.user
+    user        = self.triggers.host
+    private_key = self.triggers.private_key
+  }
+
   provisioner "remote-exec" {
     when = destroy
-    connection {
-      type        = "ssh"
-      host        = self.triggers.user
-      user        = self.triggers.host
-      private_key = self.triggers.private_key
-    }
     inline = [
       "microk8s remove-node ${self.triggers.hostname}"
     ]

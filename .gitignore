@@ -3,11 +3,9 @@
 .vscode
 modules/docker-swarm/azure/v1/manager-token.txt
 modules/docker-swarm/azure/v1/worker-token.txt
-*.tfstate
+*.tfstate*
 *.tfstate.backup
 applications/revive-adserver/new_plan
 *.tfvars
 **/**/new_plan
 .DS_Store
-
-modules/microk8s/v1/scripts/install.sh

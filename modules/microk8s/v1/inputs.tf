@@ -3,6 +3,7 @@ variable "initiator_node" {
     host = string
     user = string
     private_key = string
+    private_ip = string
   })
 }
 
@@ -11,6 +12,7 @@ variable "additional_nodes" {
     host = string
     user = string
     private_key = string
+    private_ip = string
   }))
 }
 

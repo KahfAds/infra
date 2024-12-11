@@ -108,10 +108,3 @@
 # }
 #
 #
-# resource "null_resource" "get_kubeconfig" {
-#   depends_on = [null_resource.setup_tokens]
-#
-#   provisioner "local-exec" {
-#     command = "echo ${var.initiator_node.private_key} | scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /dev/stdin  ${var.initiator_node.user}@${var.initiator_node.host}:/tmp/config/client.config /tmp/"
-#   }
-# }

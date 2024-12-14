@@ -79,7 +79,7 @@ services:
         - traefik.http.middlewares.oidc-auth.plugin.google-oidc-auth-middleware.oidc.clientSecret=${GOOGLE_OIDC_CLIENT_SECRET}
         - traefik.http.middlewares.oidc-auth.plugin.google-oidc-auth-middleware.cookie.secret=${password}
         - traefik.http.middlewares.oidc-auth.plugin.google-oidc-auth-middleware.authorized.emails=mazharul@kahf.co
-        - traefik.http.middlewares.oidc-auth.plugin.google-oidc-auth-middleware.authorized.domains=proxy.kahfads.com
+        - traefik.http.middlewares.oidc-auth.plugin.google-oidc-auth-middleware.authorized.domains=kahf.co
     networks:
       - ${network_name}
       - ad_server

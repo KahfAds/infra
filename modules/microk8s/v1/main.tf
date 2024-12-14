@@ -38,15 +38,15 @@ resource "null_resource" "install" {
       "sudo snap install microk8s --channel=${var.install_channel} --classic",
       "sudo usermod -a -G microk8s ${local.nodes[count.index].user}",
       "sudo chown -R ${local.nodes[count.index].user} ~/.kube",
-      "microk8s status --wait-ready",
+      "sudo microk8s status --wait-ready",
       "alias kubectl='microk8s kubectl'",
       "echo \"adding initiator node IPs to CSR.\"",
       "sed -i 's@#MOREIPS@IP.98 = ${var.initiator_node.private_ip}\\n#MOREIPS\\n@g' /var/snap/microk8s/current/certs/csr.conf.template",
       "sed -i 's@#MOREIPS@IP.99 = ${var.initiator_node.host}\\n#MOREIPS\\n@g' /var/snap/microk8s/current/certs/csr.conf.template",
       "echo 'done.'",
       "git config --global --add safe.directory /snap/microk8s/current/addons/community/.git",
-      "microk8s enable community",
-      "microk8s enable nfs",
+      "sudo microk8s enable community",
+      "sudo microk8s enable nfs",
     ]
   }
 }
@@ -63,7 +63,6 @@ resource "null_resource" "setup_initiator_node" {
 
   provisioner "remote-exec" {
     inline = [
-      "microk8s enable traefik",
       "microk8s enable dashboard",
       "microk8s enable dns",
       "microk8s enable prometheus",
@@ -71,6 +70,7 @@ resource "null_resource" "setup_initiator_node" {
       "microk8s enable hostpath-storage",
       "microk8s enable helm",
       "microk8s enable helm3",
+      "microk8s.helm3 install traefik traefik/traefik --namespace traefik --set ports.traefik.expose.default=true --set ports.traefik.nodePort=30880 --set ports.web.nodePort=30080 --set ports.websecure.nodePort=30443 --set ingressRoute.dashboard.enabled=true --set service.type=NodePort --version 33.2.0",
       "mkdir -p /tmp/config",
       "sudo microk8s config -l > /tmp/config/client.config",
       "echo \"updating kubeconfig\"",
@@ -83,12 +83,29 @@ resource "null_resource" "setup_initiator_node" {
 resource "null_resource" "get_kubeconfig" {
   depends_on = [null_resource.setup_initiator_node]
 
+  provisioner "remote-exec" {
+    connection {
+      type        = "ssh"
+      host        = var.initiator_node.host
+      private_key = var.initiator_node.private_key
+      user        = var.initiator_node.user
+    }
+
+    inline = [
+      "mkdir -p /tmp/config",
+      "sudo microk8s config -l > /tmp/config/client.config",
+      "echo \"updating kubeconfig\"",
+      "sed -i 's/127.0.0.1/${var.initiator_node.host}/g' /tmp/config/client.config",
+      "chmod o+r /tmp/config/client.config"
+    ]
+  }
+
   provisioner "local-exec" {
     command = <<EOT
       tmp_key=$(mktemp) && \
       echo "${var.initiator_node.private_key}" > $tmp_key && \
       chmod 600 $tmp_key && \
-      scp -i $tmp_key ${var.initiator_node.user}@${var.initiator_node.host}:/tmp/config/client.config /tmp/client.config && \
+      scp -i $tmp_key ${var.initiator_node.user}@${var.initiator_node.host}:/tmp/config/client.config ${path.root}/kubeconfig && \
       rm -f $tmp_key
     EOT
   }

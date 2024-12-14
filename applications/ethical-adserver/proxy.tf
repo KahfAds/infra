@@ -6,10 +6,12 @@ resource "random_password" "proxy" {
 
 locals {
   stack_proxy = base64encode(templatefile("${path.module}/stacks/proxy.yaml", {
-    password = random_password.proxy.bcrypt_hash
+    password = base64encode(random_password.proxy.bcrypt_hash)
     network_name               = "proxy"
     NFS_DEVICE = "${module.nfs.account}/${azurerm_storage_container.tarefik_tls.name}"
     NFS_ENDPOINT = module.nfs.endpoint
+    GOOGLE_OIDC_CLIENT_ID = var.proxy_dashboard.oidc_client_id
+    GOOGLE_OIDC_CLIENT_SECRET = var.proxy_dashboard.oidc_client_secret
   }))
 }
 

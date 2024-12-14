@@ -21,38 +21,7 @@ locals {
 module "initiator_node" {
   source = "../../modules/vm/azure/v1"
   admin_username = local.admin_username
-  allowed_ports = [
-    {
-      name = "ssh"
-      port = 22
-      protocol = "Tcp"
-      public = true
-    },
-    {
-      name = "web"
-      port = 80
-      protocol = "Tcp"
-      public = true
-    },
-    {
-      name = "websecure"
-      port = 443
-      protocol = "Tcp"
-      public = true
-    },
-    {
-      name = "microk8s-cluster"
-      port = 25000
-      protocol = "Tcp"
-      public = true
-    },
-    {
-      name = "k8s"
-      port = 16443
-      protocol = "Tcp"
-      public = true
-    }
-  ]
+  allowed_ports = local.allowed_ports
   name_prefix = "microk8s-initiator"
   network = {
     prefix = module.core_network.vnet_address_space[0]
@@ -72,38 +41,7 @@ module "master_nodes" {
   count = 0
   source = "../../modules/vm/azure/v1"
   admin_username = local.admin_username
-  allowed_ports = [
-    {
-      name = "ssh"
-      port = 22
-      protocol = "Tcp"
-      public = true
-    },
-    {
-      name = "web"
-      port = 80
-      protocol = "Tcp"
-      public = true
-    },
-    {
-      name = "websecure"
-      port = 443
-      protocol = "Tcp"
-      public = true
-    },
-    {
-      name = "microk8s-cluster"
-      port = 25000
-      protocol = "Tcp"
-      public = true
-    },
-    {
-      name = "k8s"
-      port = 16443
-      protocol = "Tcp"
-      public = true
-    }
-  ]
+  allowed_ports = local.allowed_ports
   name_prefix = "microk8s-master-${count.index+1}"
   network = {
     prefix = module.core_network.vnet_address_space[0]

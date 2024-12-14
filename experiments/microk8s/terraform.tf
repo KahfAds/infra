@@ -1,4 +1,10 @@
 terraform {
+  backend "azurerm" {
+    resource_group_name  = "microk8s-v1-tf"
+    storage_account_name = "microk8sterraform"
+    container_name       = "terraform"
+    key                  = "prod.terraform.tfstate"
+  }
   required_providers {
     azapi = {
       source = "azure/azapi"
@@ -24,6 +30,10 @@ terraform {
       source = "hashicorp/tls"
       version = "4.0.6"
     }
+    # helm = {
+    #   source = "hashicorp/helm"
+    #   version = "2.16.1"
+    # }
   }
 }
 
@@ -45,3 +55,9 @@ data "azurerm_client_config" "current" {}
 provider "azuread" {
   tenant_id = data.azurerm_client_config.current.tenant_id
 }
+
+# provider "helm" {
+#   kubernetes {
+#     config_path = "${path.root}/kubeconfig"
+#   }
+# }

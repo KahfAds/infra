@@ -32,6 +32,8 @@ services:
       - "--certificatesResolvers.letsEncrypt.acme.httpChallenge.entryPoint=web"
       - "--experimental.plugins.cloudflarewarp.modulename=github.com/BetterCorp/cloudflarewarp"
       - "--experimental.plugins.cloudflarewarp.version=v1.3.3"
+      - "--experimental.plugins.google-oidc-auth-middleware.modulename=github.com/andrewkroh/google-oidc-auth-middleware"
+      - "--experimental.plugins.google-oidc-auth-middleware.version=v0.1.0"
     volumes:
       - type: bind
         source: /var/run/docker.sock
@@ -67,11 +69,17 @@ services:
         - traefik.http.services.proxy.loadbalancer.server.port=9999
         - traefik.http.routers.traefik-dashboard.entrypoints=websecure
         - traefik.http.routers.traefik-dashboard.rule=Host(`proxy.kahfads.com`)
+        - traefik.http.routers.traefik-dashboard.middlewares=oidc-auth
         - traefik.http.routers.traefik-dashboard.service=api@internal
         - traefik.http.routers.traefik-dashboard.tls=true
         - traefik.http.routers.traefik-dashboard.tls.certresolver=letsEncrypt
         - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
         - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
+        - traefik.http.middlewares.oidc-auth.plugin.google-oidc-auth-middleware.oidc.clientID=${GOOGLE_OIDC_CLIENT_ID}
+        - traefik.http.middlewares.oidc-auth.plugin.google-oidc-auth-middleware.oidc.clientSecret=${GOOGLE_OIDC_CLIENT_SECRET}
+        - traefik.http.middlewares.oidc-auth.plugin.google-oidc-auth-middleware.cookie.secret=${password}
+        - traefik.http.middlewares.oidc-auth.plugin.google-oidc-auth-middleware.authorized.emails=mazharul@kahf.co
+        - traefik.http.middlewares.oidc-auth.plugin.google-oidc-auth-middleware.authorized.domains=proxy.kahfads.com
     networks:
       - ${network_name}
       - ad_server

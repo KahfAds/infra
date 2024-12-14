@@ -36,3 +36,10 @@ variable "qrm" {
     ip_stack_access_key = string
   })
 }
+
+variable "proxy_dashboard" {
+  type = object({
+    oidc_client_id = string
+    oidc_client_secret = string
+  })
+}

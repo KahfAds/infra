@@ -43,9 +43,9 @@ x-web-env: &django-env
     - SITE_ID=1
     - SECURE_REFERRER_POLICY=origin
     - CSRF_TRUSTED_ORIGINS=https://kahfads.com,https://www.kahfads.com
-    - DB_POOL_RECYCLE=600
-    - DB_POOL_SIZE=10
-    - DB_POOL_MAX_OVERFLOW=10
+    - DB_POOL_MIN_SIZE=5
+    - DB_POOL_MAX_SIZE=10
+    - DB_POOL_TIMEOUT=30
   networks:
     - default
 
@@ -54,12 +54,10 @@ services:
     image: kahfads${ENV}.azurecr.io/ethical-adserver/backend:latest
     entrypoint: ["/start"]
     command:
-      - "--bind=0.0.0.0:5000"
-      - "--access-logfile=-"
-      - "--worker-tmp-dir=/dev/shm"
-      - "--workers=8"
-      - "-k=uvicorn.workers.UvicornWorker"
       - "config.asgi:application"
+      - "--host=0.0.0.0"
+      - "--port=5000"
+      - "--lifespan=off"
     volumes:
       - local_media:/app/media
     <<: *django-env
@@ -82,8 +80,8 @@ services:
         - traefik.http.middlewares.django-mw2.forwardauth.trustForwardHeader=true
         - collect_logs=true
         - swarm.autoscaler=true
-        - swarm.autoscaler.maximum=12
-        - swarm.autoscaler.minimum=6
+        - swarm.autoscaler.maximum=5
+        - swarm.autoscaler.minimum=3
 
   redis:
     image: redis:5.0

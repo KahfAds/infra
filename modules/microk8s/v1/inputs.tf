@@ -41,3 +41,10 @@ variable "cluster_token_ttl_seconds" {
 variable "addons" {
   type = list(string)
 }
+
+variable "metallb" {
+  type = object({
+    ip_start = string
+    ip_end = string
+  })
+}

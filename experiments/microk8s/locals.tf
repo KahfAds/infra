@@ -24,7 +24,7 @@ locals {
       name = "microk8s-cluster"
       port = 25000
       protocol = "Tcp"
-      public = true
+      public = false
     },
     {
       name = "k8s"
@@ -35,6 +35,24 @@ locals {
     {
       name = "ingress"
       port = 8080
+      protocol = "Tcp"
+      public = true
+    },
+    {
+      name = "traefik-web"
+      port = 30080
+      protocol = "Tcp"
+      public = true
+    },
+    {
+      name = "traefik-websecure"
+      port = 30443
+      protocol = "Tcp"
+      public = true
+    },
+    {
+      name = "traefik-dashboard"
+      port = 30880
       protocol = "Tcp"
       public = true
     }

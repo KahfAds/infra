@@ -31,10 +31,14 @@ module "initiator_node" {
   public_key = module.ssh.public_key
   resource_group_name = azurerm_resource_group.this.name
   subnet = {
-    id     = module.core_network.vnet_subnets[0]
+    id     = [
+      for subnet in module.core_network.vnet_subnets :
+          subnet if endswith(subnet, local.subnets[0].name)
+    ][0]
     prefix = local.subnets[0].prefix
   }
   publicly_accessible = true
+  size = "Standard_B4ms"
 }
 
 module "master_nodes" {
@@ -87,6 +91,10 @@ module "micro_k8s" {
     hostname = module.initiator_node.ssh.hostname
   }
   install_channel = "1.30/stable"
+  metallb = {
+    ip_start = cidrhost(local.metallb_subnet_prefix, 10)
+    ip_end = cidrhost(local.metallb_subnet_prefix, 240)
+  }
 }
 
 output "k8s" {

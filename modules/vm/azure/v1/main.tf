@@ -90,6 +90,7 @@ resource "azurerm_network_interface" "this" {
   name                = "${var.name_prefix}-node-nic"
   location            = var.location
   resource_group_name = var.resource_group_name
+  ip_forwarding_enabled = true
 
   ip_configuration {
     name                          = "ipconfig1"

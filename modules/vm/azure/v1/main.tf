@@ -67,12 +67,12 @@ resource "azurerm_network_security_group" "this" {
       name                       = security_rule.value.name
       priority                   = 1000 + security_rule.key
       direction                  = "Inbound"
-      access                     = "Allow"
+      access                     = security_rule.value.access
       protocol                   = security_rule.value.protocol
       source_port_range          = "*"
       destination_port_range     = tostring(security_rule.value.port)
-      source_address_prefix      = security_rule.value.public ? "*" : var.network.prefix
-      destination_address_prefix = security_rule.value.public ? "*" : var.network.prefix
+      source_address_prefix      = security_rule.value.source_address_prefix
+      destination_address_prefix = "*"
     }
   }
 }

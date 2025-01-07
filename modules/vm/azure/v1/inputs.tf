@@ -47,10 +47,11 @@ variable "publicly_accessible" {
 
 variable "allowed_ports" {
   type = list(object({
+    access = string
     name = string
     port = number
     protocol = string
-    public = bool
+    source_address_prefix = string
   }))
 }
 

@@ -75,3 +75,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "this" {
   ip_configuration_name   = var.network_interfaces[count.index].ip_configuration_name
   backend_address_pool_id = azurerm_lb_backend_address_pool.this.id
 }
+
+output "public_ip" {
+  value = azurerm_public_ip.this.ip_address
+}

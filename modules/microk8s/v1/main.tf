@@ -12,6 +12,10 @@ terraform {
       source  = "hashicorp/null"
       version = "3.2.2"
     }
+    external = {
+      source  = "hashicorp/external"
+      version = "2.3.3"
+    }
   }
 }
 
@@ -81,35 +85,15 @@ resource "null_resource" "setup_initiator_node" {
   }
 }
 
-resource "null_resource" "get_kubeconfig" {
+data "external" "kubeconfig" {
   depends_on = [null_resource.setup_initiator_node]
-
-  provisioner "remote-exec" {
-    connection {
-      type        = "ssh"
-      host        = var.initiator_node.host
-      private_key = var.initiator_node.private_key
-      user        = var.initiator_node.user
-    }
-
-    inline = [
-      "mkdir -p /tmp/config",
-      "sudo microk8s config -l > /tmp/config/client.config",
-      "echo \"updating kubeconfig\"",
-      "sed -i 's/127.0.0.1/${var.initiator_node.host}/g' /tmp/config/client.config",
-      "chmod o+r /tmp/config/client.config"
-    ]
-  }
-
-  provisioner "local-exec" {
-    command = <<EOT
-      tmp_key=$(mktemp) && \
-      echo "${var.initiator_node.private_key}" > $tmp_key && \
-      chmod 600 $tmp_key && \
-      scp -i $tmp_key ${var.initiator_node.user}@${var.initiator_node.host}:/tmp/config/client.config ${path.root}/kubeconfig && \
-      rm -f $tmp_key
-    EOT
-  }
+  program = [
+    "bash",
+    "${path.module}/scripts/query-kubeconfig.sh",
+    base64encode(var.initiator_node.private_key),
+    var.initiator_node.user,
+    var.initiator_node.host
+  ]
 }
 
 data "external" "add_node_token" {
@@ -124,7 +108,7 @@ data "external" "add_node_token" {
 }
 
 resource "null_resource" "join_master_nodes" {
-  depends_on = [null_resource.get_kubeconfig]
+  depends_on = [null_resource.setup_initiator_node]
   count = length(var.master_nodes)
 
   connection {
@@ -173,7 +157,7 @@ resource "null_resource" "remove_master_node_from_initiator" {
 }
 
 resource "null_resource" "join_worker_nodes" {
-  depends_on = [null_resource.get_kubeconfig]
+  depends_on = [null_resource.join_master_nodes]
   count = length(var.worker_nodes)
 
   connection {

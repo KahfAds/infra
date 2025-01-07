@@ -4,3 +4,8 @@ output "token" {
     token = data.external.add_node_token.result.token
   }
 }
+
+output "kubeconfig" {
+  value = replace(base64decode(data.external.kubeconfig.result["kubeconfig_content"]), "127.0.0.1", var.initiator_node.host)
+  sensitive = true
+}

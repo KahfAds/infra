@@ -9,3 +9,4 @@ applications/revive-adserver/new_plan
 *.tfvars
 **/**/new_plan
 .DS_Store
+experiments/microk8s/ssh-keys

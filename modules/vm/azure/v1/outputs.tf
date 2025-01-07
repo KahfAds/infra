@@ -5,3 +5,10 @@ output "ssh" {
     hostname = azurerm_linux_virtual_machine.this.computer_name
   }
 }
+
+output "network_interface" {
+  value = {
+    id = azurerm_network_interface.this.id
+    ip_configuration_name = azurerm_network_interface.this.ip_configuration[0].name
+  }
+}

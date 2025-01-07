@@ -20,32 +20,19 @@ chmod 600 "$tempfile"
 
 # Run the SSH command to fetch the MicroK8s token
 OUTPUT=$(ssh -i "$tempfile" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=QUIET "$USER@$HOST" \
-                  "sudo microk8s add-node --token-ttl 3600" 2>&1)
+                  "sudo microk8s status --wait-ready && sudo microk8s config -l 2>/dev/null | base64 -w 0" 2>&1)
 
 # Clean up the temporary file
 rm -f "$tempfile"
 
 if [ -z "$OUTPUT" ]; then
-  echo "Error: Failed to fetch the MicroK8s add-node command output"
-  exit 1
-fi
-
-# Extract the full `microk8s join` command
-JOIN_COMMAND=$(echo "$OUTPUT" | grep 'microk8s join' | head -1 | awk '{$1=""; print "microk8s "$0}' | xargs)
-
-# Extract the token (second part of the join command: <IP>:25000/<TOKEN>/<TOKEN>)
-TOKEN=$(echo "$JOIN_COMMAND" | awk '{print "microk8s "$0}' | awk -F'/' '{print $(NF-1)"/"$NF}')
-
-# Validate extracted values
-if [ -z "$JOIN_COMMAND" ] || [ -z "$TOKEN" ]; then
-  echo "Error: Failed to extract the join command or token"
+  echo "Error: Failed to fetch microk8s config"
   exit 1
 fi
 
 # Return both the command and token as JSON
 cat <<EOF
 {
-  "command": "$JOIN_COMMAND",
-  "token": "$TOKEN"
+  "kubeconfig_content": "$OUTPUT"
 }
 EOF

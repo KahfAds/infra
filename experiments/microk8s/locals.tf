@@ -9,18 +9,6 @@ locals {
       public = true
     },
     {
-      name = "web"
-      port = 80
-      protocol = "Tcp"
-      public = true
-    },
-    {
-      name = "websecure"
-      port = 443
-      protocol = "Tcp"
-      public = true
-    },
-    {
       name = "microk8s-cluster"
       port = 25000
       protocol = "Tcp"
@@ -33,8 +21,20 @@ locals {
       public = true
     },
     {
-      name = "ingress"
-      port = 8080
+      name = "ingress-dashboard"
+      port = 30880
+      protocol = "Tcp"
+      public = true
+    },
+    {
+      name = "ingress-web"
+      port = 30080
+      protocol = "Tcp"
+      public = true
+    },
+    {
+      name = "ingress-websecure"
+      port = 30443
       protocol = "Tcp"
       public = true
     },

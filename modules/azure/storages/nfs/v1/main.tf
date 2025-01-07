@@ -49,7 +49,7 @@ variable "subnets" {
 
 variable "allowed_ips" {
   type = list(string)
-  default = ["114.130.0.0/16", "103.29.60.7/26", "182.160.101.179/26", "59.152.0.0/16"]
+  default = ["114.130.0.0/16", "103.29.60.7/26", "182.160.101.179/26", "59.152.0.0/16", "103.125.0.0/16"]
 }
 
 resource "azurerm_storage_account" "this" {

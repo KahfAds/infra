@@ -30,6 +30,10 @@ terraform {
       source = "hashicorp/tls"
       version = "4.0.6"
     }
+    local = {
+      source  = "hashicorp/local"
+      version = "2.5.1"
+    }
     # helm = {
     #   source = "hashicorp/helm"
     #   version = "2.16.1"

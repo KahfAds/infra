@@ -14,6 +14,11 @@ module "ssh" {
   resource_group_name = azurerm_resource_group.this.name
 }
 
+resource "local_file" "ssh_key_pem" {
+  filename = "${path.module}/ssh-keys/initiator.pem"
+  content = module.ssh.private_key_pem
+}
+
 locals {
   admin_username = "azure-user"
 }
@@ -30,6 +35,7 @@ module "initiator_node" {
   private_key_pem = module.ssh.private_key_pem
   public_key = module.ssh.public_key
   resource_group_name = azurerm_resource_group.this.name
+  size = "Standard_B4ms"
   subnet = {
     id     = [
       for subnet in module.core_network.vnet_subnets :
@@ -38,7 +44,6 @@ module "initiator_node" {
     prefix = local.subnets[0].prefix
   }
   publicly_accessible = true
-  size = "Standard_B4ms"
 }
 
 module "master_nodes" {
@@ -97,6 +102,37 @@ module "micro_k8s" {
   }
 }
 
+# module "load_balancer" {
+#   source = "../../modules/load-balancers/azure/v1"
+#   exposed_ports = [
+#     {
+#       frontend_port = 80
+#       backend_port = 30080
+#       protocol = "Tcp"
+#       name = "web"
+#     },
+#     {
+#       frontend_port = 443
+#       backend_port = 30443
+#       protocol = "Tcp"
+#       name = "websecure"
+#     },
+#     {
+#       frontend_port = 8080
+#       backend_port = 30880
+#       protocol = "Tcp"
+#       name = "proxy"
+#     }
+#   ]
+#   location = azurerm_resource_group.this.location
+#   name_prefix = "microk8s-v1"
+#   network_interfaces = concat(module.master_nodes.*.network_interface, [module.initiator_node.network_interface])
+#   resource_group_name = azurerm_resource_group.this.name
+# }
+
 output "k8s" {
-  value = module.micro_k8s.token
+  value = {
+    initiator = module.initiator_node.ssh.host
+    token = module.micro_k8s.token
+  }
 }

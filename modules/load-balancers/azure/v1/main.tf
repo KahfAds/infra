@@ -5,12 +5,12 @@ variable "resource_group_name" {}
 variable "name_prefix" {}
 
 variable "exposed_ports" {
-  type = object({
+  type = list(object({
     frontend_port = number
     backend_port = number
     protocol = string
     name = string
-  })
+  }))
 }
 
 variable "network_interfaces" {

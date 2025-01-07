@@ -8,4 +8,10 @@ locals {
     "sed -i 's@#MOREIPS@IP.99 = ${var.initiator_node.host}\\n#MOREIPS\\n@g' /var/snap/microk8s/current/certs/csr.conf.template",
     "echo 'done.'"
   ]
+
+  ingress = {
+    web_port = 30080
+    websecure_port = 30443
+    dashboard_port = 30880
+  }
 }

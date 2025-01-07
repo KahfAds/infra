@@ -96,39 +96,36 @@ module "micro_k8s" {
     hostname = module.initiator_node.ssh.hostname
   }
   install_channel = "1.30/stable"
-  metallb = {
-    ip_start = cidrhost(local.metallb_subnet_prefix, 10)
-    ip_end = cidrhost(local.metallb_subnet_prefix, 240)
-  }
 }
 
-# module "load_balancer" {
-#   source = "../../modules/load-balancers/azure/v1"
-#   exposed_ports = [
-#     {
-#       frontend_port = 80
-#       backend_port = 30080
-#       protocol = "Tcp"
-#       name = "web"
-#     },
-#     {
-#       frontend_port = 443
-#       backend_port = 30443
-#       protocol = "Tcp"
-#       name = "websecure"
-#     },
-#     {
-#       frontend_port = 8080
-#       backend_port = 30880
-#       protocol = "Tcp"
-#       name = "proxy"
-#     }
-#   ]
-#   location = azurerm_resource_group.this.location
-#   name_prefix = "microk8s-v1"
-#   network_interfaces = concat(module.master_nodes.*.network_interface, [module.initiator_node.network_interface])
-#   resource_group_name = azurerm_resource_group.this.name
-# }
+module "load_balancer" {
+  depends_on = [module.micro_k8s]
+  source = "../../modules/load-balancers/azure/v1"
+  exposed_ports = [
+    {
+      frontend_port = 80
+      backend_port = module.micro_k8s.ingress.web_port
+      protocol = "Tcp"
+      name = "web"
+    },
+    {
+      frontend_port = 443
+      backend_port = module.micro_k8s.ingress.websecure_port
+      protocol = "Tcp"
+      name = "websecure"
+    },
+    {
+      frontend_port = 8080
+      backend_port = module.micro_k8s.ingress.dashboard_port
+      protocol = "Tcp"
+      name = "proxy"
+    }
+  ]
+  location = azurerm_resource_group.this.location
+  name_prefix = "microk8s-v1"
+  network_interfaces = concat(module.master_nodes.*.network_interface, [module.initiator_node.network_interface])
+  resource_group_name = azurerm_resource_group.this.name
+}
 
 output "k8s" {
   value = {

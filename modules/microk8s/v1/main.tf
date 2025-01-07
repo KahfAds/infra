@@ -74,13 +74,8 @@ resource "null_resource" "setup_initiator_node" {
       "microk8s enable hostpath-storage",
       "microk8s enable helm",
       "microk8s enable helm3",
-      "microk8s enable metallb:${var.metallb.ip_start}-${var.metallb.ip_end}",
-      "microk8s.helm3 install traefik traefik/traefik --namespace traefik --set ports.traefik.expose.default=true --set ingressRoute.dashboard.enabled=true --version 33.2.0",
-      "mkdir -p /tmp/config",
-      "sudo microk8s config -l > /tmp/config/client.config",
-      "echo \"updating kubeconfig\"",
-      "sed -i 's/127.0.0.1/${var.initiator_node.host}/g' /tmp/config/client.config",
-      "chmod o+r /tmp/config/client.config"
+      "microk8s.helm3 install traefik traefik/traefik --namespace traefik --set ports.traefik.expose.default=true --set ports.traefik.nodePort=${local.ingress.dashboard_port} --set ports.web.nodePort=${local.ingress.web_port} --set ports.websecure.nodePort=${local.ingress.websecure_port} --set ingressRoute.dashboard.enabled=true --set service.type=NodePort --version 33.2.0",
+      "sudo microk8s status --wait-ready"
     ]
   }
 }

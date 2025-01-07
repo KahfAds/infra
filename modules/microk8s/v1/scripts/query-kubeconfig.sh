@@ -20,7 +20,7 @@ chmod 600 "$tempfile"
 
 # Run the SSH command to fetch the MicroK8s token
 OUTPUT=$(ssh -i "$tempfile" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=QUIET "$USER@$HOST" \
-                  "sudo microk8s status --wait-ready && sudo microk8s config -l 2>/dev/null | base64 -w 0" 2>&1)
+                  "sudo microk8s config -l 2>/dev/null | base64 -w 0" 2>&1)
 
 # Clean up the temporary file
 rm -f "$tempfile"

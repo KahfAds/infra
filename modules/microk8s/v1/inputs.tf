@@ -42,9 +42,10 @@ variable "addons" {
   type = list(string)
 }
 
-variable "metallb" {
+variable "ingress" {
   type = object({
-    ip_start = string
-    ip_end = string
+    web_port = number
+    websecure_port = number
+    dashboard_port = number
   })
 }

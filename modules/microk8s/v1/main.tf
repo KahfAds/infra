@@ -74,7 +74,7 @@ resource "null_resource" "setup_initiator_node" {
       "microk8s enable hostpath-storage",
       "microk8s enable helm",
       "microk8s enable helm3",
-      "microk8s.helm3 install traefik traefik/traefik --namespace traefik --set ports.traefik.expose.default=true --set ports.traefik.nodePort=${local.ingress.dashboard_port} --set ports.web.nodePort=${local.ingress.web_port} --set ports.websecure.nodePort=${local.ingress.websecure_port} --set ingressRoute.dashboard.enabled=true --set service.type=NodePort --version 33.2.0",
+      "microk8s.helm3 install traefik traefik/traefik --namespace traefik --set ports.traefik.expose.default=true --set ports.traefik.nodePort=${var.ingress.dashboard_port} --set ports.web.nodePort=${var.ingress.web_port} --set ports.websecure.nodePort=${var.ingress.websecure_port} --set ingressRoute.dashboard.enabled=true --set service.type=NodePort --version 33.2.0",
       "sudo microk8s status --wait-ready"
     ]
   }

@@ -22,39 +22,27 @@ locals {
     },
     {
       name = "ingress-dashboard"
-      port = 30880
+      port = local.ingress.dashboard_port
       protocol = "Tcp"
-      public = true
+      public = false
     },
     {
       name = "ingress-web"
-      port = 30080
+      port = local.ingress.web_port
       protocol = "Tcp"
-      public = true
+      public = false
     },
     {
       name = "ingress-websecure"
-      port = 30443
+      port = local.ingress.websecure_port
       protocol = "Tcp"
-      public = true
-    },
-    {
-      name = "traefik-web"
-      port = 30080
-      protocol = "Tcp"
-      public = true
-    },
-    {
-      name = "traefik-websecure"
-      port = 30443
-      protocol = "Tcp"
-      public = true
-    },
-    {
-      name = "traefik-dashboard"
-      port = 30880
-      protocol = "Tcp"
-      public = true
+      public = false
     }
   ]
+
+  ingress = {
+    web_port = 30080
+    websecure_port = 30443
+    dashboard_port = 30880
+  }
 }

@@ -95,6 +95,7 @@ module "micro_k8s" {
     private_ip = module.initiator_node.ssh.private_ip_address
     hostname = module.initiator_node.ssh.hostname
   }
+  ingress = local.ingress
   install_channel = "1.30/stable"
 }
 
@@ -104,19 +105,19 @@ module "load_balancer" {
   exposed_ports = [
     {
       frontend_port = 80
-      backend_port = module.micro_k8s.ingress.web_port
+      backend_port = local.ingress.web_port
       protocol = "Tcp"
       name = "web"
     },
     {
       frontend_port = 443
-      backend_port = module.micro_k8s.ingress.websecure_port
+      backend_port = local.ingress.websecure_port
       protocol = "Tcp"
       name = "websecure"
     },
     {
       frontend_port = 8080
-      backend_port = module.micro_k8s.ingress.dashboard_port
+      backend_port = local.ingress.dashboard_port
       protocol = "Tcp"
       name = "proxy"
     }
@@ -125,6 +126,11 @@ module "load_balancer" {
   name_prefix = "microk8s-v1"
   network_interfaces = concat(module.master_nodes.*.network_interface, [module.initiator_node.network_interface])
   resource_group_name = azurerm_resource_group.this.name
+}
+
+resource "local_file" "kubeconfig" {
+  filename = "${path.module}/kubeconfig.yaml"
+  content = module.micro_k8s.kubeconfig
 }
 
 output "k8s" {

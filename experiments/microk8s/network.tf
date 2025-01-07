@@ -1,5 +1,4 @@
 locals {
-  metallb_subnet_prefix = "172.16.240.0/24"
 
   subnets = [
     {
@@ -13,10 +12,6 @@ locals {
     {
       name = "subnet3"
       prefix = "172.16.3.0/24"
-    },
-    {
-      name = "metallb"
-      prefix = local.metallb_subnet_prefix
     }
   ]
 

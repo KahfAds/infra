@@ -80,7 +80,7 @@ resource "null_resource" "setup_initiator_node" {
       "microk8s.kubectl label node ${var.initiator_node.hostname} node-role.kubernetes.io/control-plane=\"\"",
       "microk8s enable dashboard",
       "microk8s enable dns",
-      "microk8s enable prometheus",
+      "microk8s enable observability --kube-prometheus-stack-version=67.9.0 --loki-stack-version=2.10.2 --tempo-version=1.16.0",
       "microk8s enable cert-manager",
       "microk8s enable hostpath-storage",
       "microk8s enable helm",

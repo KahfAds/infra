@@ -1,17 +1,10 @@
-resource "azurerm_availability_set" "this" {
-  location                    = var.location
-  name                        = "${var.name_prefix}-AS"
-  resource_group_name         = var.resource_group_name
-  platform_fault_domain_count = 2
-}
-
 resource "azurerm_linux_virtual_machine" "this" {
   name                            = "${var.name_prefix}-vm"
   location                        = var.location
   resource_group_name             = var.resource_group_name
   size                            = var.size
   disable_password_authentication = true
-  availability_set_id             = azurerm_availability_set.this.id
+  zone = var.zone
 
   network_interface_ids = [azurerm_network_interface.this.id]
 
@@ -34,7 +27,7 @@ resource "azurerm_linux_virtual_machine" "this" {
     storage_account_type = "Standard_LRS"
   }
 
-  computer_name  = var.name_prefix
+  computer_name  = "${var.name_prefix}-vm" # mismatch of this value with the name makes issue in k8s with azure integration
   admin_username = var.admin_username
 
   admin_ssh_key {
@@ -49,6 +42,14 @@ resource "azurerm_linux_virtual_machine" "this" {
     type        = "ssh"
     host        = var.publicly_accessible ? azurerm_public_ip.this[0].ip_address : var.private_ip_address
     private_key = var.private_key_pem
+  }
+
+  dynamic "identity" {
+    for_each = var.additional_identities
+    content {
+      type = identity.key
+      identity_ids = identity.value
+    }
   }
 
   tags = {

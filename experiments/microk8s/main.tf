@@ -23,49 +23,6 @@ locals {
   admin_username = "azure-user"
 }
 
-module "initiator_node" {
-  source = "../../modules/vm/azure/v1"
-  admin_username = local.admin_username
-  allowed_ports = local.allowed_ports
-  name_prefix = "microk8s-initiator"
-  network = {
-    prefix = module.core_network.vnet_address_space[0]
-  }
-  private_ip_address = cidrhost(local.subnets[0].prefix, 10)
-  private_key_pem = module.ssh.private_key_pem
-  public_key = module.ssh.public_key
-  resource_group_name = azurerm_resource_group.this.name
-  size = "Standard_B4ms"
-  subnet = {
-    id     = [
-      for subnet in module.core_network.vnet_subnets :
-          subnet if endswith(subnet, local.subnets[0].name)
-    ][0]
-    prefix = local.subnets[0].prefix
-  }
-  publicly_accessible = true
-}
-
-module "master_nodes" {
-  count = 0
-  source = "../../modules/vm/azure/v1"
-  admin_username = local.admin_username
-  allowed_ports = local.allowed_ports
-  name_prefix = "microk8s-master-${count.index+1}"
-  network = {
-    prefix = module.core_network.vnet_address_space[0]
-  }
-  private_ip_address = cidrhost(local.subnets[0].prefix, 10+count.index+1)
-  private_key_pem = module.ssh.private_key_pem
-  public_key = module.ssh.public_key
-  resource_group_name = azurerm_resource_group.this.name
-  subnet = {
-    id     = module.core_network.vnet_subnets[0]
-    prefix = local.subnets[0].prefix
-  }
-  publicly_accessible = true
-}
-
 module "micro_k8s" {
   source = "../../modules/microk8s/v1"
   addons = [
@@ -74,6 +31,7 @@ module "micro_k8s" {
     "dns",
     "prometheus",
     "cert-manager",
+    "storage",
     "hostpath-storage",
     "helm ",
     "helm3",
@@ -148,13 +106,6 @@ module "load_balancer_cluster" {
 }
 
 resource "local_file" "kubeconfig" {
-  filename = "${path.module}/kubeconfig.yaml"
+  filename = "~/.kube/config"
   content = replace(module.micro_k8s.kubeconfig, "127.0.0.1:16443", "${module.load_balancer_cluster.public_ip}:443")
-}
-
-output "k8s" {
-  value = {
-    initiator = module.initiator_node.ssh.host
-    token = module.micro_k8s.token
-  }
 }

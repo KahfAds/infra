@@ -41,12 +41,13 @@ resource "null_resource" "install" {
       "sudo DEBIAN_FRONTEND=noninteractive apt upgrade -y",
       "sudo snap install microk8s --channel=${var.install_channel} --classic",
       "sudo usermod -a -G microk8s ${local.nodes[count.index].user}",
+      "mkdir -p ~/.kube",
       "sudo chown -R ${local.nodes[count.index].user} ~/.kube",
       "sudo microk8s status --wait-ready",
       "alias kubectl='microk8s kubectl'",
       "git config --global --add safe.directory /snap/microk8s/current/addons/community/.git",
       "sudo microk8s enable community",
-      "sudo microk8s enable nfs",
+      "sudo microk8s enable nfs"
     ]
   }
 }
@@ -76,6 +77,7 @@ resource "null_resource" "setup_initiator_node" {
 
   provisioner "remote-exec" {
     inline = [
+      "microk8s.kubectl label node ${var.initiator_node.hostname} node-role.kubernetes.io/control-plane=\"\"",
       "microk8s enable dashboard",
       "microk8s enable dns",
       "microk8s enable prometheus",
@@ -83,7 +85,9 @@ resource "null_resource" "setup_initiator_node" {
       "microk8s enable hostpath-storage",
       "microk8s enable helm",
       "microk8s enable helm3",
-      "microk8s.helm3 install traefik traefik/traefik --namespace traefik --set ports.traefik.expose.default=true --set ports.traefik.nodePort=${var.ingress.dashboard_port} --set ports.web.nodePort=${var.ingress.web_port} --set ports.websecure.nodePort=${var.ingress.websecure_port} --set ingressRoute.dashboard.enabled=true --set service.type=NodePort --version 33.2.0",
+      "microk8s.helm3 repo add traefik https://traefik.github.io/charts",
+      "microk8s.helm3 repo update",
+      "microk8s.helm3 install traefik traefik/traefik --create-namespace --namespace traefik --set ports.traefik.expose.default=true --set ports.traefik.nodePort=${var.ingress.dashboard_port} --set ports.web.nodePort=${var.ingress.web_port} --set ports.websecure.nodePort=${var.ingress.websecure_port} --set ingressRoute.dashboard.enabled=true --set service.type=NodePort --version 33.2.0",
       "sudo microk8s status --wait-ready"
     ]
   }
@@ -130,7 +134,8 @@ resource "null_resource" "join_master_nodes" {
       "microk8s status --wait-ready",
       "else",
       "echo \"Join process already done. Nothing to do\"",
-      "fi"
+      "fi",
+      "sudo microk8s.kubectl label node ${var.master_nodes[count.index].hostname} node-role.kubernetes.io/control-plane=\"\"",
     ]
   }
 }

@@ -71,3 +71,12 @@ variable "subnet" {
     prefix = string
   })
 }
+
+variable "additional_identities" {
+  type = map(list(string)) # { type = [identity_ids]}
+  default = {}
+}
+
+variable "zone" {
+  default = "2"
+}

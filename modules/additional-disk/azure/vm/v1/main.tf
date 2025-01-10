@@ -45,6 +45,7 @@ resource "null_resource" "format_and_mount_disk" {
       var.create_mount_dir ? "sudo mkdir -p ${var.mount_point}" : "",
       # Mount the disk
       var.mount_now ? "sudo mount /dev/disk/azure/scsi1/lun${var.logical_unit_number} ${var.mount_point}" : "",
+      length(var.chmod) > 0 ? "sudo chmod ${var.chmod} ${var.mount_point}" : "",
       # Update fstab to mount on boot
       var.mount_at_startup ? "sudo echo '/dev/disk/azure/scsi1/lun${var.logical_unit_number} ${var.mount_point} ext4 defaults,nofail 0 0' | sudo tee -a /etc/fstab" : ""
     ]

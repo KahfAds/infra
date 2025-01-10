@@ -56,3 +56,8 @@ variable "mount_at_startup" {
   type = bool
   default = true
 }
+
+variable "chmod" {
+  type = string
+  default = ""
+}

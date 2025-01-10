@@ -13,7 +13,7 @@
 #       }
 #     }
 #
-#     storage_class_name = module.azure_disk_csi_driver.storage_class
+#     storage_class_name = module.azure_csi_driver.storage_class.disk
 #   }
 # }
 #

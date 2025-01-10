@@ -97,10 +97,12 @@ module "micro_k8s" {
   }
   ingress = local.ingress
   install_channel = "1.30/stable"
+  additional_cluster_domains = ["cluster.kahfads.com"]
+  additional_cluster_ip_addresses = [module.load_balancer_cluster.public_ip]
 }
 
-module "load_balancer" {
-  depends_on = [module.micro_k8s]
+module "load_balancer_workloads" {
+  depends_on = [module.initiator_node, module.master_nodes]
   source = "../../modules/load-balancers/azure/v1"
   exposed_ports = [
     {
@@ -128,9 +130,26 @@ module "load_balancer" {
   resource_group_name = azurerm_resource_group.this.name
 }
 
+module "load_balancer_cluster" {
+  depends_on = [module.initiator_node, module.master_nodes]
+  source = "../../modules/load-balancers/azure/v1"
+  exposed_ports = [
+    {
+      frontend_port = 443
+      backend_port = 16443
+      protocol = "Tcp"
+      name = "cluster"
+    }
+  ]
+  location = azurerm_resource_group.this.location
+  name_prefix = "microk8s-v1-cluster"
+  network_interfaces = concat(module.master_nodes.*.network_interface, [module.initiator_node.network_interface])
+  resource_group_name = azurerm_resource_group.this.name
+}
+
 resource "local_file" "kubeconfig" {
   filename = "${path.module}/kubeconfig.yaml"
-  content = module.micro_k8s.kubeconfig
+  content = replace(module.micro_k8s.kubeconfig, "127.0.0.1:16443", "${module.load_balancer_cluster.public_ip}:443")
 }
 
 output "k8s" {

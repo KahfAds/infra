@@ -44,10 +44,6 @@ resource "null_resource" "install" {
       "sudo chown -R ${local.nodes[count.index].user} ~/.kube",
       "sudo microk8s status --wait-ready",
       "alias kubectl='microk8s kubectl'",
-      "echo \"adding initiator node IPs to CSR.\"",
-      "sed -i 's@#MOREIPS@IP.98 = ${var.initiator_node.private_ip}\\n#MOREIPS\\n@g' /var/snap/microk8s/current/certs/csr.conf.template",
-      "sed -i 's@#MOREIPS@IP.99 = ${var.initiator_node.host}\\n#MOREIPS\\n@g' /var/snap/microk8s/current/certs/csr.conf.template",
-      "echo 'done.'",
       "git config --global --add safe.directory /snap/microk8s/current/addons/community/.git",
       "sudo microk8s enable community",
       "sudo microk8s enable nfs",
@@ -55,8 +51,21 @@ resource "null_resource" "install" {
   }
 }
 
-resource "null_resource" "setup_initiator_node" {
+module "csr_template" {
+  count = length(local.nodes)
   depends_on = [null_resource.install]
+  source = "./csr_template"
+  additional_domains = var.additional_cluster_domains
+  additional_ips = concat(var.additional_cluster_ip_addresses, [var.initiator_node.private_ip, var.initiator_node.host])
+  node = {
+    host = local.nodes[count.index].host
+    user = local.nodes[count.index].user
+    private_key = local.nodes[count.index].private_key
+  }
+}
+
+resource "null_resource" "setup_initiator_node" {
+  depends_on = [module.csr_template]
 
   connection {
     type        = "ssh"

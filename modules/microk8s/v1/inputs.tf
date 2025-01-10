@@ -49,3 +49,13 @@ variable "ingress" {
     dashboard_port = number
   })
 }
+
+variable "additional_cluster_domains" {
+  type = list(string)
+  default = []
+}
+
+variable "additional_cluster_ip_addresses" {
+  type = list(string)
+  default = []
+}

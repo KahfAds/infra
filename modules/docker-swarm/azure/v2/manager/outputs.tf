@@ -49,3 +49,17 @@ output "docker" {
   }
   sensitive = false
 }
+
+output "network_interfaces" {
+  value = concat([
+    {
+      id = azurerm_network_interface.primary.id
+      ip_configuration_name = azurerm_network_interface.primary.ip_configuration[0].name
+    }
+  ], [ for idx, machine in azurerm_linux_virtual_machine.manager:
+    {
+      id = machine.network_interface_ids[0]
+      ip_configuration_name = azurerm_network_interface.manager[idx].ip_configuration[0].name
+    }
+  ])
+}

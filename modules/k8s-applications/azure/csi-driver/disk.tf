@@ -53,7 +53,7 @@ resource "kubernetes_secret" "azure_cloud_provider" {
   }
 }
 
-resource "helm_release" "azure_disk_csi_driver" {
+resource "helm_release" "disk" {
   name       = "azuredisk-csi"
   chart      = "azuredisk-csi-driver"
   repository = "https://raw.githubusercontent.com/kubernetes-sigs/azuredisk-csi-driver/master/charts"
@@ -95,8 +95,8 @@ resource "helm_release" "azure_disk_csi_driver" {
   }
 }
 
-resource "kubernetes_storage_class" "this" {
-  depends_on = [helm_release.azure_disk_csi_driver]
+resource "kubernetes_storage_class" "disk" {
+  depends_on = [helm_release.disk]
   metadata {
     name = "azuredisk"
   }
@@ -107,8 +107,4 @@ resource "kubernetes_storage_class" "this" {
   }
   reclaim_policy = "Delete"
   volume_binding_mode = "WaitForFirstConsumer"
-}
-
-output "storage_class" {
-  value = kubernetes_storage_class.this.metadata[0].name
 }

@@ -10,6 +10,7 @@ resource "helm_release" "loki" {
   chart = "loki"
   name  = "loki"
   repository = "https://grafana.github.io/helm-charts"
+  version = "6.24.0"
 
   values = [file("${path.module}/config.yaml")]
 }

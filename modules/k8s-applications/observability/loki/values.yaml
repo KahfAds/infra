@@ -68,5 +68,5 @@ minio:
 
 lokiCanary:
   extraArgs:
-    - -labelname=service
-    - -labelvalue=loki-canary
+    - '-labelname=service'
+    - '-labelvalue=loki-canary'

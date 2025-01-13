@@ -1,0 +1,11 @@
+kubeControllerManager:
+  endpoints:
+    %{ for endpoint in manager_endpoints ~}
+    - ${endpoint}
+    %{ endfor ~}
+
+kubeScheduler:
+  endpoints:
+    %{ for endpoint in scheduler_endpoints ~}
+    - ${endpoint}
+    %{ endfor ~}

@@ -2,7 +2,9 @@ variable "namespace" {
   default = "observability"
 }
 
-resource "helm_release" "loki" {
+variable "alert_manager_endpoint" {}
+
+resource "helm_release" "this" {
   chart = "loki"
   name  = "loki"
   repository = "https://grafana.github.io/helm-charts"
@@ -10,5 +12,7 @@ resource "helm_release" "loki" {
   create_namespace = true
   namespace = var.namespace
 
-  values = [file("${path.module}/values.yaml")]
+  values = [templatefile("${path.module}/values.yaml", {
+    ALERT_MANAGER_ENDPOINT = var.alert_manager_endpoint
+  })]
 }

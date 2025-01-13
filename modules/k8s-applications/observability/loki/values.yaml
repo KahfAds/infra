@@ -70,3 +70,6 @@ lokiCanary:
   extraArgs:
     - '-labelname=service'
     - '-labelvalue=loki-canary'
+ruler:
+  enabled: true
+  alertmanagerURL: ${ALERT_MANAGER_ENDPOINT}

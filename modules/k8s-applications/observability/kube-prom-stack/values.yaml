@@ -9,3 +9,13 @@ kubeScheduler:
     %{ for endpoint in scheduler_endpoints ~}
     - ${endpoint}
     %{ endfor ~}
+
+
+grafana:
+  additionalDataSources:
+    - name: loki
+      type: loki
+      url: ${loki_endpoint}
+    - name: tempo
+      type: tempo
+      url: ${tempo_endpoint}

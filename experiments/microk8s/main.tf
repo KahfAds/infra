@@ -54,7 +54,7 @@ module "micro_k8s" {
     hostname = module.initiator_node.ssh.hostname
   }
   ingress = local.ingress
-  install_channel = "1.30/stable"
+  install_channel = "1.32/stable"
   additional_cluster_domains = ["cluster.kahfads.com"]
   additional_cluster_ip_addresses = [module.load_balancer_cluster.public_ip]
 }

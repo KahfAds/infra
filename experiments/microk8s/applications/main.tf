@@ -6,3 +6,13 @@ module "azure_csi_driver" {
   subnet_name = "subnet1"
   vnet_name = "acctvnet"
 }
+
+module "traefik" {
+  source = "../../../modules/k8s-applications/ingress-controllers/traefik"
+}
+
+module "cluster_issuer" {
+  source = "../../../modules/k8s-applications/cluster_issuers/letsencrypt"
+  acme_email = "mazharul@kahf.co"
+  ingress_class = module.traefik.class_name
+}

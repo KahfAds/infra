@@ -1,0 +1,36 @@
+config:
+  issuer: https://${dex_service_url}
+  storage:
+    type: kubernetes
+    config:
+      inCluster: true
+  web:
+    http: 0.0.0.0:5556
+  connectors:
+    - type: google
+      id: google
+      name: Google
+      config:
+        clientID: "${google_client_id}"
+        clientSecret: "${google_client_secret}"
+        redirectURI: "https://${dex_service_url}/callback"
+  enablePasswordDB: false
+
+ingress:
+  enabled: true
+  className: ${ingress_class}
+
+  annotations:
+    kubernetes.io/ingress.class: ${ingress_class}
+    kubernetes.io/tls-acme: "true"
+    cert-manager.io/cluster-issuer: ${cluster_issuer}
+
+  hosts:
+    - host: ${dex_service_url}
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: dex-tls
+      hosts:
+        - ${dex_service_url}

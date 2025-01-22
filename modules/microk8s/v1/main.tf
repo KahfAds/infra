@@ -91,9 +91,6 @@ resource "null_resource" "setup_initiator_node" {
       "microk8s.kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.1.1/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml",
       "microk8s.kubectl apply -n kube-system -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.1.1/deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml",
       "microk8s.kubectl apply -n kube-system -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.1.1/deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml",
-      "microk8s.helm3 repo add traefik https://traefik.github.io/charts",
-      "microk8s.helm3 repo update",
-      "microk8s.helm3 install traefik traefik/traefik --create-namespace --namespace traefik --set ports.traefik.expose.default=true --set ports.traefik.nodePort=${var.ingress.dashboard_port} --set ports.web.nodePort=${var.ingress.web_port} --set ports.websecure.nodePort=${var.ingress.websecure_port} --set ingressRoute.dashboard.enabled=true --set service.type=NodePort --version 33.2.0",
       "sudo microk8s status --wait-ready"
     ]
   }

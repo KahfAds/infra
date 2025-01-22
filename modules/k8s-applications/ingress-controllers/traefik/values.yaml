@@ -1,0 +1,16 @@
+ports:
+  traefik:
+    nodePort: ${dashboard_port}
+    expose:
+      default: true
+  web:
+    nodePort: ${web_port}
+  websecure:
+    nodePort: ${websecure_port}
+
+ingressRoute:
+  dashboard:
+    enabled: true
+
+service:
+  type: NodePort

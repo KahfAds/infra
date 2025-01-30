@@ -1,4 +1,6 @@
-locals {
+module "auth_node" {
+  source = "../../modules/vm/azure/v1"
+  admin_username = "azure-user"
   allowed_ports = [
     {
       access = "Allow"
@@ -29,12 +31,6 @@ locals {
       source_address_prefix = "*"
     }
   ]
-}
-
-module "auth_node" {
-  source = "../../modules/vm/azure/v1"
-  admin_username = "azure-user"
-  allowed_ports = local.allowed_ports
   name_prefix = "goauthentik"
   network = {
     prefix = module.core_network.vnet_address_space[0]
@@ -53,15 +49,33 @@ module "auth_node" {
   publicly_accessible = true
 }
 
-module "auth_setup" {
+module "auth_docker_setup" {
   depends_on = [module.auth_node]
 
-  source = "../../modules/goauthentik/standalone/v1"
+  source = "../../modules/vm/post-setup/debian/docker/v1"
+  ssh = {
+    host = module.auth_node.ssh.host
+    user = module.swarm_cluster.ssh.username
+    private_key_pem = module.swarm_cluster.ssh.private_key_pem
+  }
+}
+
+module "auth_setup" {
+  depends_on = [module.auth_docker_setup]
+
+  source = "../../modules/vm/post-setup/goauthentik/v1"
   authentik_domain = "auth.kahfads.com"
   letsencrypt_email = "mazharul@kahf.co"
   ssh = {
     host = module.auth_node.ssh.host
     user = module.swarm_cluster.ssh.username
     private_key_pem = module.swarm_cluster.ssh.private_key_pem
+  }
+  admin_email = "mazharul@kahf.co"
+}
+
+output "auth" {
+  value = {
+    ip_address = module.auth_node.ssh.host
   }
 }

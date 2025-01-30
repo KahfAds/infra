@@ -57,6 +57,7 @@ variable "allowed_ports" {
 
 variable "private_ip_address" {
   type = string
+  default = ""
 }
 
 variable "network" {

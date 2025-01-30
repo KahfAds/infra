@@ -96,7 +96,7 @@ resource "azurerm_network_interface" "this" {
   ip_configuration {
     name                          = "ipconfig1"
     subnet_id                     = var.subnet.id
-    private_ip_address_allocation = "Static"
+    private_ip_address_allocation = length(var.private_ip_address) > 0 ? "Static" : "Dynamic"
     private_ip_address            = var.private_ip_address
     public_ip_address_id          = var.publicly_accessible ? azurerm_public_ip.this[0].id : null
   }

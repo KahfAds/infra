@@ -40,38 +40,38 @@ variable "sas_expiry" {
   default = "87658h" # 10year
 }
 
-data "azurerm_storage_account_sas" "this" {
-  connection_string = azurerm_storage_account.this.primary_connection_string
-  https_only = true
-  expiry            = timeadd(timestamp(), var.sas_expiry)
-  start             = timeadd(timestamp(), "-5m")
-
-  permissions {
-    read    = true
-    write   = true
-    delete  = false
-    list    = false
-    add     = true
-    create  = true
-    update  = false
-    process = false
-    tag     = false
-    filter  = false
-  }
-
-  resource_types {
-    service   = true
-    container = true
-    object    = true
-  }
-
-  services {
-    blob  = true
-    file  = false
-    queue = false
-    table = false
-  }
-}
+# data "azurerm_storage_account_sas" "this" {
+#   connection_string = azurerm_storage_account.this.primary_connection_string
+#   https_only = true
+#   expiry            = timeadd(timestamp(), var.sas_expiry)
+#   start             = timeadd(timestamp(), "-5m")
+#
+#   permissions {
+#     read    = true
+#     write   = true
+#     delete  = false
+#     list    = false
+#     add     = true
+#     create  = true
+#     update  = false
+#     process = false
+#     tag     = false
+#     filter  = false
+#   }
+#
+#   resource_types {
+#     service   = true
+#     container = true
+#     object    = true
+#   }
+#
+#   services {
+#     blob  = true
+#     file  = false
+#     queue = false
+#     table = false
+#   }
+# }
 
 variable "containers" {
   type = map(string) # { name => access_type }
@@ -96,9 +96,9 @@ output "primary_blob_host" {
   value = azurerm_storage_account.this.primary_blob_host
 }
 
-output "sas_token" {
-  value = data.azurerm_storage_account_sas.this.sas
-}
+# output "sas_token" {
+#   value = data.azurerm_storage_account_sas.this.sas
+# }
 
 output "id" {
   value = azurerm_storage_account.this.id

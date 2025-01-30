@@ -46,3 +46,20 @@ scrape_configs:
         replacement: $1:9323
       - source_labels: [ __meta_dockerswarm_node_hostname ]
         target_label: instance
+
+  - job_name: 'docker-swarm-tasks'
+    docker_sd_configs:
+      - host: tcp://tasks.docker-api-socat:2375
+        role: "tasks"
+    relabel_configs:
+      - source_labels: [ __meta_docker_service_label_prometheus_scrape ]
+        action: keep
+        regex: true
+      - source_labels: [ __meta_docker_service_label_prometheus_path ]
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [ __meta_docker_service_label_prometheus_port ]
+        target_label: __address__
+        replacement: "$1"
+      - source_labels: [ __meta_docker_task_name ]
+        target_label: instance

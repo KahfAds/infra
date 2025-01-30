@@ -1,0 +1,107 @@
+version: '3.8'
+services:
+  traefik:
+    image: traefik:v2.10
+    restart: unless-stopped
+    command:
+      - '--api.insecure=true'
+      - '--providers.docker=true'
+      - '--entrypoints.web.address=:80'
+      - '--entrypoints.websecure.address=:443'
+      - '--certificatesresolvers.goauthentik.acme.tlschallenge=true'
+      - '--certificatesresolvers.goauthentik.acme.email=${letsencrypt_email}'
+      - '--certificatesresolvers.goauthentik.acme.storage=/letsencrypt/acme.json'
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - letsencrypt:/letsencrypt
+
+  postgresql:
+    image: docker.io/library/postgres:16-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER']
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 5s
+    volumes:
+      - database:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${pg_password}
+      POSTGRES_USER: authentik
+      POSTGRES_DB: authentik
+
+  redis:
+    image: docker.io/library/redis:alpine
+    command: --save 60 1 --loglevel warning
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli ping | grep PONG']
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 3s
+    volumes:
+      - redis:/data
+
+  server:
+    image: ghcr.io/goauthentik/server:${authentik_version}
+    restart: unless-stopped
+    command: server
+    environment:
+      AUTHENTIK_BOOTSTRAP_EMAIL: "${authentik_bootstrap_email}"
+      AUTHENTIK_BOOTSTRAP_PASSWORD: "${authentik_bootstrap_password}"
+      AUTHENTIK_BOOTSTRAP_TOKEN: "${authentik_bootstrap_token}"
+      AUTHENTIK_SECRET_KEY: "${authentik_secret_key}"
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_POSTGRESQL__HOST: postgresql
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${pg_password}
+    volumes:
+      - ./media:/media
+      - ./custom-templates:/templates
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.authentik.rule=Host(`${authentik_domain}`)'
+      - 'traefik.http.routers.authentik.entrypoints=websecure'
+      - 'traefik.http.routers.authentik.tls.certresolver=goauthentik'
+      - 'traefik.http.services.authentik.loadbalancer.server.port=9000'
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    image: ghcr.io/goauthentik/server:${authentik_version}
+    restart: unless-stopped
+    command: worker
+    environment:
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_POSTGRESQL__HOST: postgresql
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${pg_password}
+    volumes:
+      - media:/media
+      - ./custom-templates:/templates
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  database:
+    driver: local
+  redis:
+    driver: local
+  letsencrypt:
+    driver: local
+  media:
+    driver: local

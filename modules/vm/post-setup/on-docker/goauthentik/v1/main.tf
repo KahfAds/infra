@@ -45,6 +45,20 @@ resource "null_resource" "setup" {
     ]
   }
 
+  triggers = {
+    host        = var.ssh.host
+    user        = var.ssh.user
+    private_key = var.ssh.private_key_pem
+  }
+}
+
+resource "null_resource" "deploy" {
+  connection {
+    host        = var.ssh.host
+    user        = var.ssh.user
+    private_key = var.ssh.private_key_pem
+  }
+
   provisioner "file" {
     destination = "${local.workdir}/docker-compose.yml"
     content     = templatefile("${path.module}/docker-compose.yml", {
@@ -55,6 +69,7 @@ resource "null_resource" "setup" {
       authentik_secret_key = random_password.authentik_secret_key.result
       authentik_bootstrap_token = random_password.authentik_bootstrap_token.result
       authentik_bootstrap_password = random_password.authentik_bootstrap_password.result
+      authentik_bootstrap_email = var.admin_email
     })
   }
 
@@ -68,6 +83,7 @@ resource "null_resource" "setup" {
     host        = var.ssh.host
     user        = var.ssh.user
     private_key = var.ssh.private_key_pem
+    docker_compose_md5 = filemd5("${path.module}/docker-compose.yml")
   }
 }
 
@@ -79,6 +95,10 @@ output "secret_key" {
 output "token" {
   value = random_password.authentik_bootstrap_token.result
   sensitive = true
+}
+
+output "password" {
+  value = random_password.authentik_bootstrap_password.result
 }
 
 

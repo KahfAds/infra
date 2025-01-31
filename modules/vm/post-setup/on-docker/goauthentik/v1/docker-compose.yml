@@ -1,16 +1,28 @@
-version: '3.8'
+x-goauthentik_vars: &goauthentik_vars
+  environment:
+    AUTHENTIK_BOOTSTRAP_EMAIL: "${authentik_bootstrap_email}"
+    AUTHENTIK_BOOTSTRAP_PASSWORD: "${authentik_bootstrap_password}"
+    AUTHENTIK_BOOTSTRAP_TOKEN: "${authentik_bootstrap_token}"
+    AUTHENTIK_SECRET_KEY: "${authentik_secret_key}"
+    AUTHENTIK_REDIS__HOST: redis
+    AUTHENTIK_POSTGRESQL__HOST: postgresql
+    AUTHENTIK_POSTGRESQL__USER: authentik
+    AUTHENTIK_POSTGRESQL__NAME: authentik
+    AUTHENTIK_POSTGRESQL__PASSWORD: ${pg_password}
+
 services:
   traefik:
-    image: traefik:v2.10
+    image: traefik:v3.1.2
     restart: unless-stopped
     command:
       - '--api.insecure=true'
       - '--providers.docker=true'
+      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
       - '--entrypoints.web.address=:80'
       - '--entrypoints.websecure.address=:443'
-      - '--certificatesresolvers.goauthentik.acme.tlschallenge=true'
-      - '--certificatesresolvers.goauthentik.acme.email=${letsencrypt_email}'
-      - '--certificatesresolvers.goauthentik.acme.storage=/letsencrypt/acme.json'
+      - '--certificatesresolvers.letsEncrypt.acme.tlschallenge=true'
+      - '--certificatesresolvers.letsEncrypt.acme.email=${letsencrypt_email}'
+      - '--certificatesresolvers.letsEncrypt.acme.storage=/letsencrypt/acme.json'
     ports:
       - '80:80'
       - '443:443'
@@ -51,24 +63,15 @@ services:
     image: ghcr.io/goauthentik/server:${authentik_version}
     restart: unless-stopped
     command: server
-    environment:
-      AUTHENTIK_BOOTSTRAP_EMAIL: "${authentik_bootstrap_email}"
-      AUTHENTIK_BOOTSTRAP_PASSWORD: "${authentik_bootstrap_password}"
-      AUTHENTIK_BOOTSTRAP_TOKEN: "${authentik_bootstrap_token}"
-      AUTHENTIK_SECRET_KEY: "${authentik_secret_key}"
-      AUTHENTIK_REDIS__HOST: redis
-      AUTHENTIK_POSTGRESQL__HOST: postgresql
-      AUTHENTIK_POSTGRESQL__USER: authentik
-      AUTHENTIK_POSTGRESQL__NAME: authentik
-      AUTHENTIK_POSTGRESQL__PASSWORD: ${pg_password}
+    <<: *goauthentik_vars
     volumes:
-      - ./media:/media
+      - media:/media
       - ./custom-templates:/templates
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.authentik.rule=Host(`${authentik_domain}`)'
       - 'traefik.http.routers.authentik.entrypoints=websecure'
-      - 'traefik.http.routers.authentik.tls.certresolver=goauthentik'
+      - 'traefik.http.routers.authentik.tls.certresolver=letsEncrypt'
       - 'traefik.http.services.authentik.loadbalancer.server.port=9000'
     depends_on:
       postgresql:
@@ -80,12 +83,7 @@ services:
     image: ghcr.io/goauthentik/server:${authentik_version}
     restart: unless-stopped
     command: worker
-    environment:
-      AUTHENTIK_REDIS__HOST: redis
-      AUTHENTIK_POSTGRESQL__HOST: postgresql
-      AUTHENTIK_POSTGRESQL__USER: authentik
-      AUTHENTIK_POSTGRESQL__NAME: authentik
-      AUTHENTIK_POSTGRESQL__PASSWORD: ${pg_password}
+    <<: *goauthentik_vars
     volumes:
       - media:/media
       - ./custom-templates:/templates
@@ -95,6 +93,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    labels:
+      - 'traefik.enable=false'
 
 volumes:
   database:

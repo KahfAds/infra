@@ -106,6 +106,6 @@ module "load_balancer_cluster" {
 }
 
 resource "local_file" "kubeconfig" {
-  filename = "~/.kube/config"
+  filename = "${path.root}/applications/kubeconfig.yaml"
   content = replace(module.micro_k8s.kubeconfig, "127.0.0.1:16443", "${module.load_balancer_cluster.public_ip}:443")
 }

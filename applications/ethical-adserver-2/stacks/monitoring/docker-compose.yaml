@@ -1,0 +1,180 @@
+services:
+  swarm-dashboard:
+    image: mohsenasm/swarm-dashboard:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      TZ: "Asia/Dhaka"
+      ENABLE_AUTHENTICATION: "false"
+      ENABLE_HTTPS: "false"
+      NODE_EXPORTER_SERVICE_NAME_REGEX: "node-exporter"
+      CADVISOR_SERVICE_NAME_REGEX: "cadvisor"
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.monitoring-dashboard.entrypoints=web,websecure
+        - traefik.http.routers.monitoring-dashboard.rule=Host(`dashboard.${root_domain}`)
+        - traefik.http.routers.monitoring-dashboard.tls=true
+        - traefik.http.routers.monitoring-dashboard.tls.certresolver=letsEncrypt
+        - traefik.http.services.monitoring-dashboard.loadbalancer.server.port=8080
+        - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+        - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
+
+  grafana:
+    image: portainer/template-swarm-monitoring:grafana-9.5.2
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=monitoring_default
+        - traefik.http.routers.monitoring-grafana.entrypoints=web,websecure
+        - traefik.http.routers.monitoring-grafana.rule=Host(`grafana.${root_domain}`)
+        - traefik.http.routers.monitoring-grafana.tls=true
+        - traefik.http.routers.monitoring-grafana.tls.certresolver=letsEncrypt
+        - traefik.http.services.monitoring-grafana.loadbalancer.server.port=3000
+        - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+        - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
+    volumes:
+      - type: volume
+        source: grafana-data
+        target: /var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - default
+
+  prometheus:
+    image: prom/prometheus:v3.0.0
+    networks:
+      - default
+      - socat
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--log.level=debug'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=24h'
+    configs:
+      - source: prometheus
+        target: /etc/prometheus/prometheus.yml
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - node.role == manager
+    volumes:
+      - type: volume
+        source: prometheus-data
+        target: /prometheus
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        read_only: true
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=monitoring_default
+      - traefik.http.routers.monitoring-prometheus.entrypoints=web,websecure
+      - traefik.http.routers.monitoring-prometheus.rule=Host(`prometheus.${root_domain}`)
+      - traefik.http.routers.monitoring-prometheus.tls=true
+      - traefik.http.routers.monitoring-prometheus.tls.certresolver=letsEncrypt
+      - traefik.http.services.monitoring-prometheus.loadbalancer.server.port=9090
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
+
+  node-exporter:
+    image: mithucste30/node-exporter:v1.8.2
+    networks:
+      - host
+    command:
+      - "--path.rootfs=/rootfs"
+    environment:
+      - NODE_ID={{.Node.ID}}
+    deploy:
+      mode: global
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    volumes:
+      - /:/rootfs:ro,rslave
+      - /etc/hostname:/etc/nodename
+
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.0
+    command: -logtostderr -docker_only
+    deploy:
+      mode: global
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+      labels:
+        - prometheus-job=cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:true
+      - /sys:/sys:true
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  docker-api-socat:
+    image: tecnativa/docker-socket-proxy:0.1
+    networks:
+      - socat
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      NODES: 1
+      NETWORKS: 1
+      SERVICES: 1
+      TASKS: 1
+    logging:
+      driver: none
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == manager
+
+volumes:
+  grafana-data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "nfsvers=3,addr=${NFS_ENDPOINT},nolock,soft,rw"
+      device: ":/${NFS_DEVICE}"
+  prometheus-data:
+
+networks:
+  default:
+    name: monitoring_default
+    driver: overlay
+    attachable: true
+  socat:
+    name: socat
+    driver: overlay
+    attachable: true
+  host:
+    name: host
+    driver: host
+    external: true
+
+configs:
+  prometheus:
+    name: ${PROMETHEUS_CONFIG_NAME}
+    external: true

@@ -52,3 +52,8 @@ variable "worker_scale" {
     desired = 3
   }
 }
+
+variable "manager_replica" {
+  type = number
+  default = 2
+}

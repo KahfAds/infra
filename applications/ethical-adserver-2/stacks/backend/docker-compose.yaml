@@ -7,20 +7,20 @@ x-web-env: &django-env
   environment:
     - USE_DOCKER=true
     - IPYTHONDIR=/app/.ipython
-    - MEDIA_URL=https://app.kahfads.com/media/
+    - MEDIA_URL=https://app.${ROOT_DOMAIN}/media/
     - REDIS_URL=redis://redis:6379/0
     - DATABASE_URL=psql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:6432/ethicaladserver #6432 pgbouncer https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-pgbouncer#switching-your-application-to-use-pgbouncer
-    - METABASE_SITE_URL=https://metabase.kahfads.com
+    - METABASE_SITE_URL=https://metabase.${ROOT_DOMAIN}
     - ADSERVER_ANALYZER_BACKEND="adserver.analyzer.backends.TextacyAnalyzerBackend"
     - COLUMNS=80
     - ETHICALADS_DJANGO_PORT=5000
-    - ALLOWED_HOSTS=app.kahfads.com
+    - ALLOWED_HOSTS=app.${ROOT_DOMAIN}
     - SECRET_KEY=${SECRET_KEY}
     - ADSERVER_HTTPS=True
     - DJANGO_SETTINGS_MODULE=config.settings.production
     - SENDGRID_API_KEY=${SENDGRID_API_KEY}
     - DEFAULT_FILE_STORAGE=config.storage.AzureCDNFileStorage
-    - DEFAULT_FILE_STORAGE_HOSTNAME=${DEFAULT_FILE_STORAGE_HOSTNAME}
+    - DEFAULT_FILE_STORAGE_HOSTNAME=media.${ROOT_DOMAIN}
     - AZURE_ACCOUNT_NAME=${AZURE_ACCOUNT_NAME}
     - AZURE_ACCOUNT_KEY=${AZURE_ACCOUNT_KEY}
     - AZURE_CONTAINER=${AZURE_CONTAINER}
@@ -42,7 +42,7 @@ x-web-env: &django-env
     - CORS_ALLOW_ALL_ORIGINS=true
     - SITE_ID=1
     - SECURE_REFERRER_POLICY=origin
-    - CSRF_TRUSTED_ORIGINS=https://app.kahfads.com
+    - CSRF_TRUSTED_ORIGINS=https://app.${ROOT_DOMAIN}
     - DB_POOL_TIMEOUT=30
     - SMTP_HOST=${SMTP_HOST}
     - SMTP_PORT=${SMTP_PORT}
@@ -65,15 +65,15 @@ services:
     <<: *django-env
     deploy:
       mode: replicated
-      replicas: 3
+      replicas: 1
       labels:
         - traefik.enable=true
         - traefik.docker.network=ethical_ad_server_default
         - traefik.http.routers.django-http.entrypoints=web
-        - traefik.http.routers.django-http.rule=Host(`app.kahfads.com`)
+        - traefik.http.routers.django-http.rule=Host(`app.${ROOT_DOMAIN}`)
         - traefik.http.routers.django-http.middlewares=django-mw1,django-mw2
         - traefik.http.routers.django-https.entrypoints=websecure
-        - traefik.http.routers.django-https.rule=Host(`app.kahfads.com`)
+        - traefik.http.routers.django-https.rule=Host(`app.${ROOT_DOMAIN}`)
         - traefik.http.routers.django-https.tls=true
         - traefik.http.routers.django-https.tls.certresolver=letsEncrypt
         - traefik.http.services.django.loadbalancer.server.port=5000
@@ -82,7 +82,7 @@ services:
         - traefik.http.middlewares.django-mw2.forwardauth.trustForwardHeader=true
         - collect_logs=true
         - swarm.autoscaler=true
-        - swarm.autoscaler.maximum=5
+        - swarm.autoscaler.maximum=6
         - swarm.autoscaler.minimum=3
 
   redis:
@@ -118,13 +118,14 @@ services:
     deploy:
       labels:
         - traefik.enable=true
-        - traefik.http.routers.metabase.entrypoints=websecure
-        - traefik.http.routers.metabase.rule=Host(`metabase.kahfads.com`)
+        - traefik.http.services.metabase.loadbalancer.server.port=3000
+        - traefik.http.routers.metabase.entrypoints=web,websecure
+        - traefik.http.routers.metabase.rule=Host(`metabase.${ROOT_DOMAIN}`)
         - traefik.http.routers.metabase.tls=true
         - traefik.http.routers.metabase.tls.certresolver=letsEncrypt
-        - traefik.http.services.metabase.loadbalancer.server.port=3000
-        - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
-        - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
+        - traefik.http.middlewares.mb-redirect-https.redirectscheme.scheme=https
+        - traefik.http.middlewares.mb-redirect-https.redirectscheme.permanent=true
+
 networks:
   default:
     name: ethical_ad_server_default

@@ -10,6 +10,7 @@ module "manager" {
   roles = var.roles
   subnet = var.subnet
   docker_secrets = var.docker_secrets
+  replica = var.manager_replica
 }
 
 module "worker" {

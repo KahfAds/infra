@@ -27,7 +27,7 @@ services:
       - "--entryPoints.ping.address=:8082"
       - "--entryPoints.traefik.address=:8080"
       - "--ping.entryPoint=ping"
-      - "--certificatesResolvers.letsEncrypt.acme.email=mazharul@kahf.co"
+      - "--certificatesResolvers.letsEncrypt.acme.email=${acme_email}"
       - "--certificatesResolvers.letsEncrypt.acme.storage=/traefik/tls/acme.json"
       - "--certificatesResolvers.letsEncrypt.acme.httpChallenge.entryPoint=web"
       - "--experimental.plugins.cloudflarewarp.modulename=github.com/BetterCorp/cloudflarewarp"
@@ -58,8 +58,7 @@ services:
         published: 8082
         mode: ingress
     deploy:
-      mode: replicated
-      replicas: 1
+      mode: global
       placement:
         constraints:
           - node.role==manager
@@ -68,8 +67,8 @@ services:
       labels:
         - traefik.enable=true
         - traefik.http.services.proxy.loadbalancer.server.port=9999
-        - traefik.http.routers.traefik-dashboard.entrypoints=websecure
-        - traefik.http.routers.traefik-dashboard.rule=Host(`proxy.kahfads.com`)
+        - traefik.http.routers.traefik-dashboard.entrypoints=web,websecure
+        - traefik.http.routers.traefik-dashboard.rule=Host(`proxy.${root_domain}`)
         - traefik.http.routers.traefik-dashboard.middlewares=oidc-auth
         - traefik.http.routers.traefik-dashboard.service=api@internal
         - traefik.http.routers.traefik-dashboard.tls=true
@@ -82,6 +81,7 @@ services:
         - traefik.http.middlewares.oidc-auth.plugin.google-oidc-auth-middleware.authorized.domains=kahf.co
     networks:
       - ${network_name}
+      - qrm
       - ad_server
       - monitoring
       - portainer
@@ -91,6 +91,9 @@ networks:
     name: ${network_name}
     driver: overlay
     attachable: true
+  qrm:
+    name: qrm_default
+    external: true
   ad_server:
     name: ethical_ad_server_default
     external: true
@@ -100,3 +103,4 @@ networks:
   portainer:
     name: portainer_agent_network
     external: true
+

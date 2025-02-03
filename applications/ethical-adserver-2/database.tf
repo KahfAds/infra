@@ -25,7 +25,7 @@ resource "azurerm_subnet" "database" {
 }
 
 resource "azurerm_private_dns_zone" "database" {
-  name                = "adserver.postgres.database.azure.com"
+  name                = "${local.name_prefix}${local.env}.postgres.database.azure.com"
   resource_group_name = azurerm_resource_group.this.name
 }
 
@@ -38,7 +38,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "database" {
 }
 
 resource "azurerm_postgresql_flexible_server" "this" {
-  name                = "ethical-adserver"
+  name                = "${local.name_prefix}-${local.env}"
   location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
   delegated_subnet_id = azurerm_subnet.database.id
@@ -69,8 +69,8 @@ resource "azurerm_postgresql_flexible_server" "this" {
   }
 }
 
-resource "azurerm_postgresql_flexible_server_database" "revive_ad_server" {
-  name      = "ethical-adserver"
+resource "azurerm_postgresql_flexible_server_database" "backend" {
+  name      = "ethicaladserver"
   server_id = azurerm_postgresql_flexible_server.this.id
   collation = "en_US.utf8"
   charset   = "utf8"

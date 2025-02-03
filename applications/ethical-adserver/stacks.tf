@@ -14,6 +14,10 @@ locals {
       POSTGRES_USER = local.database_user
       POSTGRES_PASSWORD = random_password.database.result
       DEFAULT_FILE_STORAGE_HOSTNAME = "media.kahfads.com"
+      SMTP_HOST = var.smtp.host
+      SMTP_PORT = var.smtp.port
+      SMTP_USER = var.smtp.username
+      SMTP_PASSWORD = var.smtp.password
     }))
     monitoring    = base64encode(module.monitoring.stack)
     portainer     = base64encode(file("${path.module}/stacks/portainer.yaml"))

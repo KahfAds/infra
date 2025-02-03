@@ -35,7 +35,7 @@ resource "tls_cert_request" "server_cert_request" {
     common_name  = "server.kahf-ads.com"
     organization = "Kahf Ads"
   }
-  ip_addresses = concat([azurerm_public_ip.primary.ip_address], azurerm_public_ip.manager.*.ip_address)
+  ip_addresses = [azurerm_public_ip.primary.ip_address]
 }
 # Step 6: Sign the server CSR with the CA's private key
 resource "tls_locally_signed_cert" "server_cert" {
@@ -64,7 +64,7 @@ resource "tls_cert_request" "client_cert_request" {
     common_name  = "Terraform"
     organization = "kahf Ads"
   }
-  ip_addresses = concat([azurerm_public_ip.primary.ip_address], azurerm_public_ip.manager.*.ip_address)
+  ip_addresses = [azurerm_public_ip.primary.ip_address]
 }
 # Step 9: Sign the client certificate with the CA's private key
 resource "tls_locally_signed_cert" "client_cert" {

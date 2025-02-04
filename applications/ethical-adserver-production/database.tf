@@ -125,7 +125,14 @@ resource "azurerm_postgresql_flexible_server_configuration" "require_secure_tran
   value     = "on"
 }
 
+resource "azurerm_postgresql_flexible_server_configuration" "max_connections_replica" {
+  name      = "max_connections"
+  server_id = azurerm_postgresql_flexible_server.replica.id
+  value     = 1001
+}
+
 resource "azurerm_postgresql_flexible_server_configuration" "max_connections" {
+  depends_on = [azurerm_postgresql_flexible_server_configuration.max_connections_replica]
   name      = "max_connections"
   server_id = azurerm_postgresql_flexible_server.this.id
   value     = 1000

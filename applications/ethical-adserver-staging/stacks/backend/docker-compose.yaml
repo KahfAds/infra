@@ -67,19 +67,13 @@ services:
       mode: replicated
       replicas: 1
       labels:
+        - logs.collector=loki
         - traefik.enable=true
         - traefik.docker.network=ethical_ad_server_default
-        - traefik.http.routers.django-http.entrypoints=web
-        - traefik.http.routers.django-http.rule=Host(`app.${ROOT_DOMAIN}`)
-        - traefik.http.routers.django-http.middlewares=django-mw1,django-mw2
-        - traefik.http.routers.django-https.entrypoints=websecure
-        - traefik.http.routers.django-https.rule=Host(`app.${ROOT_DOMAIN}`)
-        - traefik.http.routers.django-https.tls=true
-        - traefik.http.routers.django-https.tls.certresolver=letsEncrypt
-        - traefik.http.services.django.loadbalancer.server.port=5000
-        - traefik.http.middlewares.django-mw1.redirectscheme.scheme=https
-        - traefik.http.middlewares.django-mw1.redirectscheme.permanent=true
-        - traefik.http.middlewares.django-mw2.forwardauth.trustForwardHeader=true
+        - traefik.http.routers.ads-backend.entrypoints=web,websecure
+        - traefik.http.routers.ads-backend.rule=Host(`app.${ROOT_DOMAIN}`)
+        - traefik.http.routers.ads-backend.middlewares=redirectToHttps@file
+        - traefik.http.services.ads-backend.loadbalancer.server.port=5000
         - collect_logs=true
         - swarm.autoscaler=true
         - swarm.autoscaler.maximum=6
@@ -117,14 +111,12 @@ services:
       - MB_SITE_URL=
     deploy:
       labels:
+        - logs.collector=loki
         - traefik.enable=true
         - traefik.http.services.metabase.loadbalancer.server.port=3000
         - traefik.http.routers.metabase.entrypoints=web,websecure
+        - traefik.http.routers.metabase.middlewares=redirectToHttps@file
         - traefik.http.routers.metabase.rule=Host(`metabase.${ROOT_DOMAIN}`)
-        - traefik.http.routers.metabase.tls=true
-        - traefik.http.routers.metabase.tls.certresolver=letsEncrypt
-        - traefik.http.middlewares.mb-redirect-https.redirectscheme.scheme=https
-        - traefik.http.middlewares.mb-redirect-https.redirectscheme.permanent=true
 
 networks:
   default:

@@ -27,11 +27,7 @@ services:
         - traefik.enable=true
         - traefik.http.routers.portainer.entrypoints=web,websecure
         - traefik.http.routers.portainer.rule=Host(`portainer.${root_domain}`)
-        - traefik.http.routers.portainer.tls=true
-        - traefik.http.routers.portainer.tls.certresolver=letsEncrypt
         - traefik.http.services.portainer.loadbalancer.server.port=9000
-        - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
-        - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
 
 networks:
   agent_network:

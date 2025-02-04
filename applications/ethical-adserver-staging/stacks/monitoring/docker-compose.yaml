@@ -16,12 +16,9 @@ services:
       labels:
         - traefik.enable=true
         - traefik.http.routers.monitoring-dashboard.entrypoints=web,websecure
+        - traefik.http.routers.monitoring-dashboard.middlewares=google-oidc-auth@file,redirectToHttps@file
         - traefik.http.routers.monitoring-dashboard.rule=Host(`dashboard.${root_domain}`)
-        - traefik.http.routers.monitoring-dashboard.tls=true
-        - traefik.http.routers.monitoring-dashboard.tls.certresolver=letsEncrypt
         - traefik.http.services.monitoring-dashboard.loadbalancer.server.port=8080
-        - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
-        - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
 
   grafana:
     image: grafana/grafana:11.5.1
@@ -36,12 +33,9 @@ services:
         - traefik.enable=true
         - traefik.docker.network=monitoring_default
         - traefik.http.routers.monitoring-grafana.entrypoints=web,websecure
+        - traefik.http.routers.monitoring-grafana.middlewares=google-oidc-auth@file,redirectToHttps@file
         - traefik.http.routers.monitoring-grafana.rule=Host(`grafana.${root_domain}`)
-        - traefik.http.routers.monitoring-grafana.tls=true
-        - traefik.http.routers.monitoring-grafana.tls.certresolver=letsEncrypt
         - traefik.http.services.monitoring-grafana.loadbalancer.server.port=3000
-        - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
-        - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
     volumes:
       - type: volume
         source: grafana-data
@@ -85,16 +79,9 @@ services:
       - traefik.enable=true
       - traefik.docker.network=monitoring_default
       - traefik.http.routers.monitoring-prometheus.entrypoints=web,websecure
+      - traefik.http.routers.monitoring-prometheus.middlewares=google-oidc-auth@file,redirectToHttps@file,addTrailingSlash@file
       - traefik.http.routers.monitoring-prometheus.rule=Host(`prometheus.${root_domain}`)
-      - traefik.http.routers.monitoring-prometheus.tls=true
-      - traefik.http.routers.monitoring-prometheus.tls.certresolver=letsEncrypt
       - traefik.http.services.monitoring-prometheus.loadbalancer.server.port=9090
-      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
-      - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
-      - "traefik.http.middlewares.prometheus-redirect.redirectregex.permanent=true"  # Redirect without slash
-      - "traefik.http.middlewares.prometheus-redirect.redirectregex.regex=^https?://([^/]+)$$"  # Match no slash
-      - "traefik.http.middlewares.prometheus-redirect.redirectregex.replacement=https://$$1/"  # Add the slash
-      - traefik.http.routers.monitoring-prometheus.middlewares=prometheus-redirect,redirect-to-https
 
   node-exporter:
     image: mithucste30/node-exporter:v1.8.2

@@ -42,6 +42,7 @@ resource "null_resource" "format_and_mount_disk" {
       "fi",
       var.create_mount_dir ? "sudo mkdir -p ${var.mount_point}" : "echo 'create_mount_dir is false so mount point will not be created'",
       var.mount_now ? "sudo mount /dev/disk/azure/scsi1/lun${var.logical_unit_number} ${var.mount_point}" : "echo 'create_mount_dir is false so mount operation will not be run'",
+      length(var.chown) > 0 ? "sudo chown -R ${var.chown} ${var.mount_point}" : "echo 'due to logic chown operation skipped'",
       length(var.chmod) > 0 ? "sudo chmod ${var.chmod} ${var.mount_point}" : "echo 'due to logic chmod operation skipped'",
       var.mount_at_startup ? "sudo echo '/dev/disk/azure/scsi1/lun${var.logical_unit_number} ${var.mount_point} ext4 defaults,nofail 0 0' | sudo tee -a /etc/fstab" : "echo 'mount_at_startup is false so it will not be added in /etc/fstab'"
     ]

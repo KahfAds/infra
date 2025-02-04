@@ -1,0 +1,62 @@
+accessLog: {}
+api:
+  dashboard: true
+
+certificatesResolvers:
+  letsEncrypt:
+    acme:
+      email: ${acme_email}
+      storage: "/traefik/tls/acme.json"
+      httpChallenge:
+        entryPoint: web
+
+entryPoints:
+  ping:
+    address: ":8082"
+  metrics:
+    address: ":8899"
+  tarefik:
+    address: ":8080"
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+
+experimental:
+  plugins:
+    cloudflarewarp:
+      moduleName: github.com/BetterCorp/cloudflarewarp
+      version: v1.3.3
+    google-oidc-auth-middleware:
+      moduleName: github.com/andrewkroh/google-oidc-auth-middleware
+      version: v0.1.0
+
+log:
+  level: DEBUG
+
+metrics:
+  prometheus:
+    buckets:
+     - 0.100000
+     - 0.300000
+     - 1.200000
+     - 5.000000
+    addEntryPointsLabels: true
+    addServicesLabels: true
+    entryPoint: metrics
+
+ping:
+  entryPoint: ping
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+  swarm:
+    exposedByDefault: false
+
+
+
+
+
+

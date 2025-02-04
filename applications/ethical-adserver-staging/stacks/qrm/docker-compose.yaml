@@ -1,0 +1,44 @@
+services:
+  app:
+    image: kahfads${env}.azurecr.io/qr-code-mgmt/app:latest
+    depends_on:
+      - redis
+    volumes:
+      - qrm:/app/storage/app/public/logos
+      - framework:/app/storage/framework
+      - logs:/app/storage/logs
+    configs:
+      - source: app
+        target: /app/.env
+    networks:
+      - default
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.qrm-app.entrypoints=web,websecure
+        - traefik.http.routers.qrm-app.rule=Host(`qr.${root_domain}`)
+        - traefik.http.routers.qrm-app.tls.certresolver=letsEncrypt
+        - traefik.http.services.qrm-app.loadbalancer.server.port=8000
+  redis:
+    image: redis:alpine
+
+volumes:
+  qrm:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "nfsvers=3,addr=${NFS_ENDPOINT},nolock,soft,rw"
+      device: ":/${NFS_DEVICE}"
+  framework:
+  logs:
+
+configs:
+  app:
+    name: ${APP_CONFIG_NAME}
+    external: true
+
+networks:
+  default:
+    name: qrm_default
+    driver: overlay
+    attachable: true

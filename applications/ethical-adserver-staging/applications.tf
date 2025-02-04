@@ -1,13 +1,13 @@
 locals {
   docker_configs = {
-    # loki = {
-    #   name = "loki"
-    #   content = file("${path.module}/stacks/logging/loki.yaml")
-    # }
-    # promtail = {
-    #   name = "promtail"
-    #   content = file("${path.module}/stacks/logging/promtail.yaml")
-    # },
+    loki = {
+      name = "loki"
+      content = file("${path.module}/stacks/monitoring/loki.yaml")
+    }
+    promtail = {
+      name = "promtail"
+      content = file("${path.module}/stacks/monitoring/promtail.yaml")
+    }
     qrm_app = {
       name = "qrm_app"
       content = templatefile("${path.module}/stacks/qrm/.env", {
@@ -75,6 +75,9 @@ module "monitoring" {
   nfs_endpoint           = module.nfs.endpoint
   prometheus_config_name = docker_config.this[local.docker_configs.prometheus.name].name
   root_domain            = local.root_domain
+  loki_config_name       = docker_config.this[local.docker_configs.loki.name].name
+  loki_disk_mount_point  = local.loki_mount_point
+  promtail_config_name   = docker_config.this[local.docker_configs.promtail.name].name
 }
 
 locals {
@@ -111,10 +114,6 @@ locals {
     swarm-cronjob = base64encode(file("${path.module}/stacks/swarm-cronjob.yaml"))
     qrm = base64encode(module.qrm.stack)
     autoscaler = base64encode(file("${path.module}/stacks/autoscaler.yaml"))
-    # logging = base64encode(templatefile("${path.module}/stacks/logging/docker-compose.yaml", {
-    #   LOKI_CONFIG_NAME = docker_config.this[local.docker_configs.loki.name].name
-    #   PROMTAIL_CONFIG_NAME = docker_config.this[local.docker_configs.promtail.name].name
-    # }))
     proxy = local.stack_proxy
   }
 }

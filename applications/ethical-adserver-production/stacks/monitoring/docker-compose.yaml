@@ -111,6 +111,34 @@ services:
       - /:/rootfs:ro,rslave
       - /etc/hostname:/etc/nodename
 
+  loki:
+    image: grafana/loki:2.9.0
+    volumes:
+      - ${LOKI_DISK_MOUNT_POINT}:/loki
+    ports:
+      - "3100:3100"
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512M
+    configs:
+      - source: loki
+        target: /config/config.yaml
+
+  promtail:
+    image: grafana/promtail:2.9.0
+    volumes:
+      - /var/log:/var/log  # Modify this to your logs directory
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro  # Access to Docker logs
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: -config.file=/etc/promtail/config.yml
+    deploy:
+      replicas: 1
+    configs:
+      - source: promtail
+        target: /etc/promtail/config.yml
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:v0.47.0
@@ -178,3 +206,9 @@ configs:
   prometheus:
     name: ${PROMETHEUS_CONFIG_NAME}
     external: true
+  loki:
+    name: ${LOKI_CONFIG_NAME}
+    external: true
+  promtail:
+    external: true
+    name: ${PROMTAIL_CONFIG_NAME}

@@ -61,3 +61,8 @@ variable "chmod" {
   type = string
   default = ""
 }
+
+variable "chown" {
+  type = string
+  default = ""
+}

@@ -1,5 +1,5 @@
 locals {
-  env = "staging"
+  env = "production"
 
   ingress = {
     web_port = 80
@@ -9,7 +9,7 @@ locals {
 
   blocked_ips = [
   ]
-  root_domain = "staging.kahfads.com"
+  root_domain = "kahfads.com"
   name_prefix = "kahfads"
 
   qrm = {

@@ -16,15 +16,12 @@ services:
       labels:
         - traefik.enable=true
         - traefik.http.routers.monitoring-dashboard.entrypoints=web,websecure
+        - traefik.http.routers.monitoring-dashboard.middlewares=google-oidc-auth@file,redirectToHttps@file
         - traefik.http.routers.monitoring-dashboard.rule=Host(`dashboard.${root_domain}`)
-        - traefik.http.routers.monitoring-dashboard.tls=true
-        - traefik.http.routers.monitoring-dashboard.tls.certresolver=letsEncrypt
         - traefik.http.services.monitoring-dashboard.loadbalancer.server.port=8080
-        - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
-        - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
 
   grafana:
-    image: portainer/template-swarm-monitoring:grafana-9.5.2
+    image: grafana/grafana:11.5.1
     deploy:
       replicas: 1
       restart_policy:
@@ -36,12 +33,9 @@ services:
         - traefik.enable=true
         - traefik.docker.network=monitoring_default
         - traefik.http.routers.monitoring-grafana.entrypoints=web,websecure
+        - traefik.http.routers.monitoring-grafana.middlewares=google-oidc-auth@file,redirectToHttps@file
         - traefik.http.routers.monitoring-grafana.rule=Host(`grafana.${root_domain}`)
-        - traefik.http.routers.monitoring-grafana.tls=true
-        - traefik.http.routers.monitoring-grafana.tls.certresolver=letsEncrypt
         - traefik.http.services.monitoring-grafana.loadbalancer.server.port=3000
-        - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
-        - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
     volumes:
       - type: volume
         source: grafana-data
@@ -85,12 +79,9 @@ services:
       - traefik.enable=true
       - traefik.docker.network=monitoring_default
       - traefik.http.routers.monitoring-prometheus.entrypoints=web,websecure
+      - traefik.http.routers.monitoring-prometheus.middlewares=google-oidc-auth@file,redirectToHttps@file,addTrailingSlash@file
       - traefik.http.routers.monitoring-prometheus.rule=Host(`prometheus.${root_domain}`)
-      - traefik.http.routers.monitoring-prometheus.tls=true
-      - traefik.http.routers.monitoring-prometheus.tls.certresolver=letsEncrypt
       - traefik.http.services.monitoring-prometheus.loadbalancer.server.port=9090
-      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
-      - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
 
   node-exporter:
     image: mithucste30/node-exporter:v1.8.2
@@ -112,7 +103,7 @@ services:
       - /etc/hostname:/etc/nodename
 
   loki:
-    image: grafana/loki:2.9.0
+    image: grafana/loki:3.3.2
     volumes:
       - ${LOKI_DISK_MOUNT_POINT}:/loki
     ports:
@@ -128,7 +119,7 @@ services:
         target: /config/config.yaml
 
   promtail:
-    image: grafana/promtail:2.9.0
+    image: grafana/promtail:3.3.2
     volumes:
       - /var/log:/var/log  # Modify this to your logs directory
       - /var/lib/docker/containers:/var/lib/docker/containers:ro  # Access to Docker logs

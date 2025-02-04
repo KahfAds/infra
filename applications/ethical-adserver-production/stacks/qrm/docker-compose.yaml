@@ -16,8 +16,8 @@ services:
       labels:
         - traefik.enable=true
         - traefik.http.routers.qrm-app.entrypoints=web,websecure
+        - traefik.http.routers.qrm-app.middlewares=google-oidc-auth@file,redirectToHttps@file
         - traefik.http.routers.qrm-app.rule=Host(`qr.${root_domain}`)
-        - traefik.http.routers.qrm-app.tls.certresolver=letsEncrypt
         - traefik.http.services.qrm-app.loadbalancer.server.port=8000
   redis:
     image: redis:alpine

@@ -1,0 +1,87 @@
+volumes:
+  tls:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "nfsvers=3,addr=${nfs_endpoint},nolock,soft,rw"
+      device: ":/${nfs_device}"
+services:
+  proxy:
+    image: traefik:v3.1.2
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        read_only: true
+      - tls:/traefik/tls
+    configs:
+      - source: traefik
+        target: /etc/traefik/traefik.yaml
+      - source: dynamic
+        target: /etc/traefik/dynamic.yaml
+    ports:
+      - target: 80
+        published: 80
+        mode: host
+        protocol: tcp
+      - protocol: tcp
+        target: 443
+        published: 443
+        mode: host
+      - protocol: tcp
+        target: 8080
+        published: 8080
+        mode: ingress
+      - protocol: tcp
+        target: 8082
+        published: 8082
+        mode: ingress
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role==manager
+        preferences:
+          - spread: node.role.manager
+      labels:
+        - traefik.enable=true
+        - traefik.http.services.proxy.loadbalancer.server.port=9999
+        - traefik.http.routers.traefik-dashboard.entrypoints=web,websecure
+        - traefik.http.routers.traefik-dashboard.rule=Host(`proxy.${root_domain}`)
+        - traefik.http.routers.traefik-dashboard.middlewares=google-oidc-auth@file,redirectToHttps@file
+        - traefik.http.routers.traefik-dashboard.service=api@internal
+    networks:
+      - ${network_name}
+      - qrm
+      - ad_server
+      - monitoring
+      - portainer
+
+networks:
+  ${network_name}:
+    name: ${network_name}
+    driver: overlay
+    attachable: true
+  qrm:
+    name: qrm_default
+    external: true
+  ad_server:
+    name: ethical_ad_server_default
+    external: true
+  monitoring:
+    name: monitoring_default
+    external: true
+  portainer:
+    name: portainer_agent_network
+    external: true
+
+configs:
+  traefik:
+    name: ${static_config_name}
+    external: true
+  dynamic:
+    name: ${dynamic_config_name}
+    external: true
+
+

@@ -81,3 +81,9 @@ resource "azurerm_cdn_endpoint" "endpoint" {
 
   origin_host_header = module.blob.primary_blob_host
 }
+
+resource "azurerm_cdn_endpoint_custom_domain" "example" {
+  name            = "backend-media"
+  cdn_endpoint_id = azurerm_cdn_endpoint.endpoint.id
+  host_name       = "media.${local.root_domain}"
+}

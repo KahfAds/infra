@@ -58,7 +58,7 @@ resource "azurerm_storage_account" "this" {
   account_replication_type      = "LRS"
   account_tier                  = "Standard"
   location                      = var.resource_group.location
-  name                          = "${var.name_prefix}storage"
+  name                          = substr("${var.name_prefix}storage", 0, 23)
   resource_group_name           = var.resource_group.name
   account_kind                  = "StorageV2"
   nfsv3_enabled                 = true

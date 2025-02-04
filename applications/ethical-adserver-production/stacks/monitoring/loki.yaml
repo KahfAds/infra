@@ -11,13 +11,14 @@ common:
       chunks_directory: /tmp/loki/chunks
       rules_directory: /tmp/loki/rules
   replication_factor: 1
-  ring:
-    instance_addr: 127.0.0.1
-    kvstore:
-      store: inmemory
 
 frontend:
   address: 0.0.0.0
+  scheduler_address: "0.0.0.0:9095"
+
+limits_config:
+  ingestion_rate_mb: 10  # Increase from the default 4 MB/sec
+  ingestion_burst_size_mb: 20  # Adjust burst size accordingly
 
 schema_config:
   configs:
@@ -34,6 +35,3 @@ storage_config:
     directory: /loki/index
   filesystem:
     directory: /loki/chunks
-
-ruler:
-  alertmanager_url: http://localhost:9093

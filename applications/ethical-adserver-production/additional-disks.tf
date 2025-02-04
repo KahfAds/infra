@@ -18,4 +18,5 @@ module "logging_disk" {
     private_key = module.swarm_cluster.ssh.private_key_pem
   }
   virtual_machine_id = module.swarm_cluster.ssh.virtual_machines[count.index].id
+  chown = "10001:10001"
 }

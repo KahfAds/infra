@@ -69,8 +69,36 @@ resource "azurerm_postgresql_flexible_server" "this" {
   }
 }
 
+resource "azurerm_postgresql_flexible_server" "replica" {
+  name                = "${local.name_prefix}-${local.env}-read-replica"
+  resource_group_name = azurerm_resource_group.this.name
+  location            = azurerm_resource_group.this.location
+  version             = azurerm_postgresql_flexible_server.this.version
+
+  storage_mb = azurerm_postgresql_flexible_server.this.storage_mb
+  sku_name   = azurerm_postgresql_flexible_server.this.sku_name
+  delegated_subnet_id = azurerm_postgresql_flexible_server.this.delegated_subnet_id
+  auto_grow_enabled = true
+  create_mode = "Replica"
+  source_server_id    = azurerm_postgresql_flexible_server.this.id
+  private_dns_zone_id = azurerm_private_dns_zone.database.id
+  public_network_access_enabled = false
+  zone = "2"
+}
+
 resource "azurerm_postgresql_flexible_server_database" "backend" {
   name      = "ethicaladserver"
+  server_id = azurerm_postgresql_flexible_server.this.id
+  collation = "en_US.utf8"
+  charset   = "utf8"
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+resource "azurerm_postgresql_flexible_server_database" "metabase" {
+  name      = "metabase_app_db"
   server_id = azurerm_postgresql_flexible_server.this.id
   collation = "en_US.utf8"
   charset   = "utf8"

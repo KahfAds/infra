@@ -1,0 +1,26 @@
+http:
+  middlewares:
+    addTrailingSlash:
+      redirectRegex:
+        regex: "^([^/]+[^/])$"
+        replacement: "${1}/"
+        permanent: true
+
+    redirectToHttps:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+    google-oidc-auth:
+      plugin:
+        google-oidc-auth:
+          oidc:
+            clientID: ${GOOGLE_OIDC_CLIENT_ID}
+            clientSecret: ${GOOGLE_OIDC_CLIENT_SECRET}
+          cookie:
+            secret: ${GOOGLE_OIDC_COOKIE_PASSWORD}
+          authorized:
+            domains:
+              %{ for domain in GOOGLE_OIDC_AUTHORIZED_DOMAINS ~}
+              - ${domain}
+              %{ endfor ~}

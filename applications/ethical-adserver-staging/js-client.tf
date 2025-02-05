@@ -6,4 +6,6 @@ module "js_client" {
   AZURE_STORAGE_ACCOUNT = module.blob.account
   AZURE_SUBSCRIPTION_ID = data.azurerm_client_config.current.subscription_id
   env = local.env
+  asset_domain = "media.${local.root_domain}"
+  backend_domain = "app.${local.root_domain}"
 }

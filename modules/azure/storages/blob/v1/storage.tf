@@ -40,6 +40,48 @@ variable "sas_expiry" {
   default = "87658h" # 10year
 }
 
+variable "containers" {
+  type = map(string) # { name => access_type }
+}
+
+resource "azurerm_storage_container" "this" {
+  for_each = var.containers
+  name                  = each.key
+  storage_account_name  = azurerm_storage_account.this.name
+  container_access_type = each.value
+}
+
+output "account" {
+  value = azurerm_storage_account.this.name
+}
+
+output "primary_access_key" {
+  value = azurerm_storage_account.this.primary_access_key
+}
+
+output "primary_blob_host" {
+  value = azurerm_storage_account.this.primary_blob_host
+}
+
+output "id" {
+  value = azurerm_storage_account.this.id
+}
+
+output "credentials" {
+  value = {
+    username = module.credentials.client_id
+    password = module.credentials.client_secret
+    tenant_id = module.credentials.tenant_id
+  }
+}
+
+module "credentials" {
+  source = "../../../ad/service_principal"
+  name_prefix = "${var.name}-storage"
+  scope_id    = azurerm_storage_account.this.id
+  role_definition_name = "Contributor"
+}
+
 # data "azurerm_storage_account_sas" "this" {
 #   connection_string = azurerm_storage_account.this.primary_connection_string
 #   https_only = true
@@ -73,48 +115,6 @@ variable "sas_expiry" {
 #   }
 # }
 
-variable "containers" {
-  type = map(string) # { name => access_type }
-}
-
-resource "azurerm_storage_container" "this" {
-  for_each = var.containers
-  name                  = each.key
-  storage_account_name  = azurerm_storage_account.this.name
-  container_access_type = each.value
-}
-
-output "account" {
-  value = azurerm_storage_account.this.name
-}
-
-output "primary_access_key" {
-  value = azurerm_storage_account.this.primary_access_key
-}
-
-output "primary_blob_host" {
-  value = azurerm_storage_account.this.primary_blob_host
-}
-
 # output "sas_token" {
 #   value = data.azurerm_storage_account_sas.this.sas
 # }
-
-output "id" {
-  value = azurerm_storage_account.this.id
-}
-
-output "credentials" {
-  value = {
-    username = module.credentials.client_id
-    password = module.credentials.client_secret
-    tenant_id = module.credentials.tenant_id
-  }
-}
-
-module "credentials" {
-  source = "../../../ad/service_principal"
-  name_prefix = "${var.name}-storage"
-  scope_id    = azurerm_storage_account.this.id
-  role_definition_name = "Contributor"
-}

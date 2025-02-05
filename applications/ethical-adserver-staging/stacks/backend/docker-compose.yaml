@@ -9,7 +9,9 @@ x-web-env: &django-env
     - IPYTHONDIR=/app/.ipython
     - MEDIA_URL=https://app.${ROOT_DOMAIN}/media/
     - REDIS_URL=redis://redis:6379/0
+    - DATABASE_ROUTER=adserver.router.ReplicaRouter
     - DATABASE_URL=psql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:6432/ethicaladserver #6432 pgbouncer https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-pgbouncer#switching-your-application-to-use-pgbouncer
+    - REPLICA_DATABASE_URL=psql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_REPLICA_HOST}:6432/ethicaladserver
     - METABASE_SITE_URL=https://metabase.${ROOT_DOMAIN}
     - ADSERVER_ANALYZER_BACKEND="adserver.analyzer.backends.TextacyAnalyzerBackend"
     - COLUMNS=80
@@ -48,6 +50,7 @@ x-web-env: &django-env
     - SMTP_PORT=${SMTP_PORT}
     - SMTP_USER=${SMTP_USER}
     - SMTP_PASSWORD=${SMTP_PASSWORD}
+    - PROMETHEUS_EXPORT_MIGRATIONS=False
   networks:
     - default
 
@@ -88,6 +91,9 @@ services:
       - redis
     <<: *django-env
     command: /start-celeryworker
+    deploy:
+      labels:
+        - logs.collector=loki
 
   celery_beat:
     image: kahfads${ENV}.azurecr.io/ethical-adserver/backend:latest
@@ -95,6 +101,9 @@ services:
       - redis
     <<: *django-env
     command: /start-celerybeat
+    deploy:
+      labels:
+        - logs.collector=loki
 
   metabase:
     image: metabase/metabase

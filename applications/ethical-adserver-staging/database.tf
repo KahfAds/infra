@@ -125,15 +125,34 @@ resource "azurerm_postgresql_flexible_server_configuration" "require_secure_tran
   value     = "on"
 }
 
+resource "azurerm_postgresql_flexible_server_configuration" "require_secure_transport_replica" {
+  name      = "require_secure_transport"
+  server_id = azurerm_postgresql_flexible_server.replica.id
+  value     = "on"
+}
+
 resource "azurerm_postgresql_flexible_server_configuration" "max_connections" {
+  depends_on = [azurerm_postgresql_flexible_server_configuration.max_connections_replica]
   name      = "max_connections"
   server_id = azurerm_postgresql_flexible_server.this.id
   value     = 1000
 }
 
+resource "azurerm_postgresql_flexible_server_configuration" "max_connections_replica" {
+  name      = "max_connections"
+  server_id = azurerm_postgresql_flexible_server.replica.id
+  value     = 1001
+}
+
 resource "azurerm_postgresql_flexible_server_configuration" "pg_bouncer" {
   name      = "pgbouncer.enabled"
   server_id = azurerm_postgresql_flexible_server.this.id
+  value     = true
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "pg_bouncer_replica" {
+  name      = "pgbouncer.enabled"
+  server_id = azurerm_postgresql_flexible_server.replica.id
   value     = true
 }
 
@@ -143,9 +162,21 @@ resource "azurerm_postgresql_flexible_server_configuration" "default_pool_size" 
   value     = 4950
 }
 
+resource "azurerm_postgresql_flexible_server_configuration" "default_pool_size_replica" {
+  name      = "pgbouncer.default_pool_size"
+  server_id = azurerm_postgresql_flexible_server.replica.id
+  value     = 4950
+}
+
 resource "azurerm_postgresql_flexible_server_configuration" "server_idle_timeout" {
   name      = "pgbouncer.server_idle_timeout"
   server_id = azurerm_postgresql_flexible_server.this.id
+  value     = 30
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "server_idle_timeout_replica" {
+  name      = "pgbouncer.server_idle_timeout"
+  server_id = azurerm_postgresql_flexible_server.replica.id
   value     = 30
 }
 
@@ -155,8 +186,20 @@ resource "azurerm_postgresql_flexible_server_configuration" "pgbouncer_diagnosti
   value     = "on"
 }
 
+resource "azurerm_postgresql_flexible_server_configuration" "pgbouncer_diagnostics_replica" {
+  name      = "metrics.pgbouncer_diagnostics"
+  server_id = azurerm_postgresql_flexible_server.replica.id
+  value     = "on"
+}
+
 resource "azurerm_postgresql_flexible_server_configuration" "extensions" {
   name      = "azure.extensions"
   server_id = azurerm_postgresql_flexible_server.this.id
+  value     = "citext,pg_trgm,postgis,timescaledb,hstore,uuid-ossp,plpgsql,pg_stat_statements,vector"
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "extensions_replica" {
+  name      = "azure.extensions"
+  server_id = azurerm_postgresql_flexible_server.replica.id
   value     = "citext,pg_trgm,postgis,timescaledb,hstore,uuid-ossp,plpgsql,pg_stat_statements,vector"
 }

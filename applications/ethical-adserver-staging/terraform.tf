@@ -1,4 +1,10 @@
 terraform {
+  backend "azurerm" {
+    resource_group_name  = "kahfads-common"
+    storage_account_name = "adsterraformstates"
+    container_name       = "staging"
+    key                  = "terraform.tfstate"
+  }
   required_providers {
     azapi = {
       source = "azure/azapi"

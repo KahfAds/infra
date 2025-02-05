@@ -82,8 +82,13 @@ resource "azurerm_cdn_endpoint" "endpoint" {
   origin_host_header = module.blob.primary_blob_host
 }
 
-resource "azurerm_cdn_endpoint_custom_domain" "example" {
+resource "azurerm_cdn_endpoint_custom_domain" "backend_media" {
   name            = "backend-media"
   cdn_endpoint_id = azurerm_cdn_endpoint.endpoint.id
   host_name       = "media.${local.root_domain}"
+  cdn_managed_https {
+    certificate_type = "Dedicated"
+    protocol_type    = "ServerNameIndication"
+    tls_version = "TLS12"
+  }
 }

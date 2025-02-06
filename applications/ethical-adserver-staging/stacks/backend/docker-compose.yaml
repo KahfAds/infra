@@ -51,6 +51,7 @@ x-web-env: &django-env
     - SMTP_USER=${SMTP_USER}
     - SMTP_PASSWORD=${SMTP_PASSWORD}
     - PROMETHEUS_EXPORT_MIGRATIONS=False
+    - SECURE_SSL_REDIRECT=False
   networks:
     - default
 
@@ -66,18 +67,21 @@ services:
     volumes:
       - local_media:/app/media
     <<: *django-env
+    networks:
+      - default
+      - monitoring_channel
+      - proxy_channel
     deploy:
       mode: replicated
       replicas: 1
       labels:
         - logs.collector=loki
         - traefik.enable=true
-        - traefik.docker.network=ethical_ad_server_default
+        - traefik.docker.network=proxy_channel
         - traefik.http.routers.ads-backend.entrypoints=web,websecure
         - traefik.http.routers.ads-backend.rule=Host(`app.${ROOT_DOMAIN}`)
         - traefik.http.routers.ads-backend.middlewares=redirectToHttps@file
         - traefik.http.services.ads-backend.loadbalancer.server.port=5000
-        - collect_logs=true
         - swarm.autoscaler=true
         - swarm.autoscaler.maximum=6
         - swarm.autoscaler.minimum=3
@@ -94,6 +98,14 @@ services:
     deploy:
       labels:
         - logs.collector=loki
+
+  celery_exporter:
+    image: danihodovic/celery-exporter
+    command:
+      - "--broker-url=redis://redis:6379/0"
+    networks:
+      - default
+      - monitoring_channel
 
   celery_beat:
     image: kahfads${ENV}.azurecr.io/ethical-adserver/backend:latest
@@ -118,10 +130,14 @@ services:
       - MB_DB_PASS=${POSTGRES_PASSWORD}
       - MB_DB_HOST=${POSTGRES_HOST}
       - MB_SITE_URL=
+    networks:
+      - default
+      - proxy_channel
     deploy:
       labels:
         - logs.collector=loki
         - traefik.enable=true
+        - traefik.docker.network=proxy_channel
         - traefik.http.services.metabase.loadbalancer.server.port=3000
         - traefik.http.routers.metabase.entrypoints=web,websecure
         - traefik.http.routers.metabase.middlewares=redirectToHttps@file
@@ -132,3 +148,9 @@ networks:
     name: ethical_ad_server_default
     driver: overlay
     attachable: true
+  proxy_channel:
+    name: proxy_channel
+    external: true
+  monitoring_channel:
+    name: monitoring_channel
+    external: true

@@ -18,6 +18,7 @@ services:
       - portainer_data:/data
     networks:
       - agent_network
+      - proxy_channel
     deploy:
       mode: replicated
       replicas: 1
@@ -25,6 +26,7 @@ services:
         constraints: [node.role == manager]
       labels:
         - traefik.enable=true
+        - traefik.docker.network=proxy_channel
         - traefik.http.routers.portainer.entrypoints=web,websecure
         - traefik.http.routers.portainer.rule=Host(`portainer.${root_domain}`)
         - traefik.http.services.portainer.loadbalancer.server.port=9000
@@ -33,6 +35,12 @@ networks:
   agent_network:
     driver: overlay
     attachable: true
+  proxy_channel:
+    name: proxy_channel
+    external: true
+  monitoring_channel:
+    name: monitoring_channel
+    external: true
 
 volumes:
   portainer_data:

@@ -35,6 +35,23 @@ scrape_configs:
         type: 'A'
         port: 8899
 
+  - job_name: ethical-ad-server
+    metrics_path: /prometheus/metrics
+    dns_sd_configs:
+      - names:
+          - 'tasks.ethical_ad_server_django'  # Docker Swarm tasks DNS name
+        type: 'A'
+        port: 5000
+
+  - job_name: ethical-ad-server-celery
+    metrics_path: /metrics
+    dns_sd_configs:
+      - names:
+          - 'tasks.ethical_ad_server_celery_exporter'  # Docker Swarm tasks DNS name
+        type: 'A'
+        port: 9808
+
+
   - job_name: docker-swarm
     dockerswarm_sd_configs:
       - host: tcp://tasks.docker-api-socat:2375

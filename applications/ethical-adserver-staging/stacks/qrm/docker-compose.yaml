@@ -12,9 +12,11 @@ services:
         target: /app/.env
     networks:
       - default
+      - proxy_channel
     deploy:
       labels:
         - traefik.enable=true
+        - traefik.docker.network=proxy_channel
         - traefik.http.routers.qrm-app.entrypoints=web,websecure
         - traefik.http.routers.qrm-app.middlewares=google-oidc-auth@file,redirectToHttps@file
         - traefik.http.routers.qrm-app.rule=Host(`qr.${root_domain}`)
@@ -42,3 +44,9 @@ networks:
     name: qrm_default
     driver: overlay
     attachable: true
+  proxy_channel:
+    name: proxy_channel
+    external: true
+  monitoring_channel:
+    name: monitoring_channel
+    external: true

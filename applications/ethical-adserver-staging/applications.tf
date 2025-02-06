@@ -144,8 +144,24 @@ locals {
   }
 }
 
-resource "null_resource" "stack_deployments" {
+resource "null_resource" "shared_networks" {
   depends_on = [module.swarm_cluster]
+  connection {
+    type        = "ssh"
+    user        = module.swarm_cluster.ssh.username
+    private_key = module.swarm_cluster.ssh.private_key_pem
+    host        = module.swarm_cluster.ssh.ip_addresses.leader
+  }
+  provisioner "remote-exec" {
+    inline = [
+      "sudo docker network create proxy_channel --attachable=true --driver=overlay --scope=swarm",
+      "sudo docker network create monitoring_channel --attachable=true --driver=overlay --scope=swarm"
+    ]
+  }
+}
+
+resource "null_resource" "stack_deployments" {
+  depends_on = [null_resource.shared_networks]
   for_each = local.stacks
   connection {
     user        = self.triggers.user_name

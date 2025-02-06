@@ -9,12 +9,16 @@ services:
       ENABLE_HTTPS: "false"
       NODE_EXPORTER_SERVICE_NAME_REGEX: "node-exporter"
       CADVISOR_SERVICE_NAME_REGEX: "cadvisor"
+    networks:
+      - default
+      - proxy_channel
     deploy:
       placement:
         constraints:
           - node.role == manager
       labels:
         - traefik.enable=true
+        - traefik.docker.network=proxy_channel
         - traefik.http.routers.monitoring-dashboard.entrypoints=web,websecure
         - traefik.http.routers.monitoring-dashboard.middlewares=google-oidc-auth@file,redirectToHttps@file
         - traefik.http.routers.monitoring-dashboard.rule=Host(`dashboard.${root_domain}`)
@@ -22,20 +26,6 @@ services:
 
   grafana:
     image: grafana/grafana:11.5.1
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: on-failure
-      placement:
-        constraints:
-          - node.role == manager
-      labels:
-        - traefik.enable=true
-        - traefik.docker.network=monitoring_default
-        - traefik.http.routers.monitoring-grafana.entrypoints=web,websecure
-        - traefik.http.routers.monitoring-grafana.middlewares=google-oidc-auth@file,redirectToHttps@file
-        - traefik.http.routers.monitoring-grafana.rule=Host(`grafana.${root_domain}`)
-        - traefik.http.services.monitoring-grafana.loadbalancer.server.port=3000
     volumes:
       - type: volume
         source: grafana-data
@@ -46,12 +36,24 @@ services:
       - GF_USERS_ALLOW_SIGN_UP=false
     networks:
       - default
+      - proxy_channel
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=proxy_channel
+        - traefik.http.routers.monitoring-grafana.entrypoints=web,websecure
+        - traefik.http.routers.monitoring-grafana.middlewares=google-oidc-auth@file,redirectToHttps@file
+        - traefik.http.routers.monitoring-grafana.rule=Host(`grafana.${root_domain}`)
+        - traefik.http.services.monitoring-grafana.loadbalancer.server.port=3000
 
   prometheus:
     image: prom/prometheus:v3.0.0
-    networks:
-      - default
-      - socat
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--log.level=debug'
@@ -60,13 +62,6 @@ services:
     configs:
       - source: prometheus
         target: /etc/prometheus/prometheus.yml
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: on-failure
-      placement:
-        constraints:
-          - node.role == manager
     volumes:
       - type: volume
         source: prometheus-data
@@ -75,13 +70,26 @@ services:
         source: /var/run/docker.sock
         target: /var/run/docker.sock
         read_only: true
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=monitoring_default
-      - traefik.http.routers.monitoring-prometheus.entrypoints=web,websecure
-      - traefik.http.routers.monitoring-prometheus.middlewares=google-oidc-auth@file,redirectToHttps@file,addTrailingSlash@file
-      - traefik.http.routers.monitoring-prometheus.rule=Host(`prometheus.${root_domain}`)
-      - traefik.http.services.monitoring-prometheus.loadbalancer.server.port=9090
+    networks:
+      - default
+      - socat
+      - monitoring_channel
+      - proxy_channel
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - logs.collector=loki
+        - traefik.enable=true
+        - traefik.docker.network=proxy_channel
+        - traefik.http.routers.monitoring-prometheus.entrypoints=web,websecure
+        - traefik.http.routers.monitoring-prometheus.middlewares=google-oidc-auth@file,redirectToHttps@file,addTrailingSlash@file
+        - traefik.http.routers.monitoring-prometheus.rule=Host(`prometheus.${root_domain}`)
+        - traefik.http.services.monitoring-prometheus.loadbalancer.server.port=9090
 
   node-exporter:
     image: mithucste30/node-exporter:v1.8.2
@@ -191,6 +199,12 @@ networks:
   host:
     name: host
     driver: host
+    external: true
+  proxy_channel:
+    name: proxy_channel
+    external: true
+  monitoring_channel:
+    name: monitoring_channel
     external: true
 
 configs:

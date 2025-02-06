@@ -3,6 +3,12 @@ networks:
   monitoring:
     name: monitoring_default
     external: true
+  proxy_channel:
+    name: proxy_channel
+    external: true
+  monitoring_channel:
+    name: monitoring_channel
+    external: true
 
 services:
   this:
@@ -27,3 +33,4 @@ services:
         reservations:
           cpus: "0.10"
           memory: 64M
+

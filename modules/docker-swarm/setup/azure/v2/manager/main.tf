@@ -1,5 +1,5 @@
 module "ssh_key" {
-  source              = "../../../../ssh-keys/azure/v1"
+  source              = "../../../../../ssh-keys/azure/v1"
   location            = var.location
   name_prefix         = var.name_prefix
   resource_group_name = var.resource_group_name

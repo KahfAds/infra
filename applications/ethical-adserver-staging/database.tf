@@ -25,7 +25,7 @@ resource "azurerm_subnet" "database" {
 }
 
 resource "azurerm_private_dns_zone" "database" {
-  name                = "${local.name_prefix}${local.env}.postgres.database.azure.com"
+  name                = "${local.name_prefix}${var.env}.postgres.database.azure.com"
   resource_group_name = azurerm_resource_group.this.name
 }
 
@@ -38,7 +38,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "database" {
 }
 
 resource "azurerm_postgresql_flexible_server" "this" {
-  name                = "${local.name_prefix}-${local.env}"
+  name                = "${local.name_prefix}-${var.env}"
   location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
   delegated_subnet_id = azurerm_subnet.database.id
@@ -70,7 +70,7 @@ resource "azurerm_postgresql_flexible_server" "this" {
 }
 
 resource "azurerm_postgresql_flexible_server" "replica" {
-  name                = "${local.name_prefix}-${local.env}-read-replica"
+  name                = "${local.name_prefix}-${var.env}-read-replica"
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
   version             = azurerm_postgresql_flexible_server.this.version

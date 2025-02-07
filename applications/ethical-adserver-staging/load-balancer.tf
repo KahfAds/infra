@@ -15,7 +15,7 @@ module "load_balancer" {
     }
   ]
   location = azurerm_resource_group.this.location
-  name_prefix = "${local.name_prefix}-${local.env}"
+  name_prefix = "${local.name_prefix}-${var.env}"
   network_interfaces = module.swarm_cluster.network_interfaces.manager
   resource_group_name = azurerm_resource_group.this.name
 }

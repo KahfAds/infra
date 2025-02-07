@@ -5,6 +5,7 @@ volumes:
 
 x-web-env: &django-env
   environment:
+    - DEBUG=True
     - USE_DOCKER=true
     - IPYTHONDIR=/app/.ipython
     - MEDIA_URL=https://app.${ROOT_DOMAIN}/media/

@@ -68,10 +68,6 @@ resource "azurerm_storage_blob" "px_gif" {
   content_type           = "image/gif"
 }
 
-data "local_file" "client_js" {
-  filename = "${path.module}/client.min.js"
-}
-
 resource "azurerm_storage_blob" "client_js" {
   name                   = "client/kahfads.min.js"
   storage_account_name   = var.AZURE_STORAGE_ACCOUNT

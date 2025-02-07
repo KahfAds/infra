@@ -1,3 +1,5 @@
+variable "env" {}
+
 variable "sendgrid_api_key" {
   type = string
 }

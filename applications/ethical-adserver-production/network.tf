@@ -31,7 +31,7 @@ module "core_network" {
 
   use_for_each = true
   tags = {
-    environment = local.env
+    environment = var.env
   }
   depends_on = [azurerm_resource_group.this]
   subnet_service_endpoints = {

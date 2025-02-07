@@ -1,5 +1,5 @@
 module "manager" {
-  source = "./manager"
+  source = "manager"
   location = var.location
   name_prefix = "${var.name_prefix}-docker-swarm-manager"
   network = var.network
@@ -11,7 +11,7 @@ module "manager" {
 
 module "worker" {
   depends_on = [module.manager]
-  source = "./worker"
+  source = "worker"
   location = var.location
   name_prefix = "${var.name_prefix}-docker-swarm-worker"
   network = var.network

@@ -10,7 +10,7 @@ locals {
 }
 
 module "ssh_key" {
-  source              = "../../../../ssh-keys/azure/v1"
+  source              = "../../../../../ssh-keys/azure/v1"
   location            = var.location
   name_prefix         = var.name_prefix
   resource_group_name = var.resource_group_name
@@ -24,7 +24,7 @@ resource "azurerm_availability_set" "this" {
 }
 
 module "node" {
-  source               = "../../../../vm/azure/v1"
+  source               = "../../../../../vm/azure/v1"
   admin_username       = local.admin_username
   availability_set_id  = azurerm_availability_set.this.id
   name_prefix          = "${var.name_prefix}-node"

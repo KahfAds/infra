@@ -4,7 +4,7 @@ locals {
 
 module "swarm_cluster" {
   depends_on = [module.core_network.vnet_id]
-  source = "../../modules/docker-swarm/azure/v2"
+  source = "../../modules/docker-swarm/setup/azure/v2"
 
   accessible_registries = [azurerm_container_registry.this.name]
   location               = local.location

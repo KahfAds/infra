@@ -4,7 +4,7 @@ module "blob" {
     backups = "private"
     ethicaladserver = "blob"
   }
-  name   = "${local.name_prefix}${local.env}"
+  name   = "${local.name_prefix}${var.env}"
   resource_group = {
     name = azurerm_resource_group.this.name
     location = azurerm_resource_group.this.location
@@ -13,7 +13,7 @@ module "blob" {
 
 module "nfs" {
   source = "../../modules/azure/storages/nfs/v1"
-  name_prefix = "${local.name_prefix}nfs${local.env}"
+  name_prefix = "${local.name_prefix}nfs${var.env}"
   resource_group = {
     name = azurerm_resource_group.this.name
     location = azurerm_resource_group.this.location

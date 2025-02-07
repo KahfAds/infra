@@ -1,3 +1,5 @@
+init:
+	terraform init
 plan:
 	terraform plan -out new_plan
 apply:

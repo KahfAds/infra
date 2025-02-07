@@ -1,5 +1,5 @@
 resource "azurerm_container_registry" "this" {
-  name                = "${local.name_prefix}${local.env}"
+  name                = "${local.name_prefix}${var.env}"
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
   sku                 = "Basic"
@@ -9,7 +9,7 @@ resource "azurerm_container_registry" "this" {
 module "container_registry_credentials" {
   source = "../../modules/azure/ad/service_principal"
 
-  name_prefix = "${local.name_prefix}-${local.env}-docker-terraform"
+  name_prefix = "${local.name_prefix}-${var.env}-docker-terraform"
   scope_id    = azurerm_container_registry.this.id
   role_definition_name = "Contributor"
 }

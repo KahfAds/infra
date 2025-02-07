@@ -1,6 +1,4 @@
 locals {
-  env = "production"
-
   ingress = {
     web_port = 80
     websecure_port = 443
@@ -9,7 +7,6 @@ locals {
 
   blocked_ips = [
   ]
-  root_domain = "kahfads.com"
   name_prefix = "kahfads"
 
   qrm = {

@@ -2,15 +2,15 @@ locals {
   docker_configs = {
     loki = {
       name = "loki"
-      content = file("${path.module}/stacks/monitoring/loki.yaml")
+      content = file("../../modules/docker-swarm/stacks/monitoring/loki.yaml")
     }
     promtail = {
       name = "promtail"
-      content = file("${path.module}/stacks/monitoring/promtail.yaml")
+      content = file("../../modules/docker-swarm/stacks/monitoring/promtail.yaml")
     }
     qrm_app = {
       name = "qrm_app"
-      content = templatefile("${path.module}/stacks/qrm/.env", {
+      content = templatefile("../../modules/docker-swarm/stacks/qrm/.env", {
         APP_ENV                = "production"
         APP_KEY                = var.qrm.app_key
         APP_DEBUG              = false
@@ -28,17 +28,17 @@ locals {
     },
     prometheus = {
       name = "prometheus"
-      content = file("${path.module}/stacks/monitoring/prometheus.yaml")
+      content = file("../../modules/docker-swarm/stacks/monitoring/prometheus.yaml")
     }
     tarefik_static = {
       name = "tarefik_static"
-      content = templatefile("${path.module}/stacks/proxy/traefik.yaml", {
+      content = templatefile("../../modules/docker-swarm/stacks/proxy/traefik.yaml", {
         acme_email = "mazharul+30@kahf.co"
       })
     }
     tarefik_dynamic = {
       name = "tarefik_dynamic"
-      content = templatefile("${path.module}/stacks/proxy/dynamic.yaml", {
+      content = templatefile("../../modules/docker-swarm/stacks/proxy/dynamic.yaml", {
         GOOGLE_OIDC_CLIENT_ID     = var.proxy_dashboard.oidc_client_id
         GOOGLE_OIDC_CLIENT_SECRET = var.proxy_dashboard.oidc_client_secret
         GOOGLE_OIDC_COOKIE_PASSWORD = base64encode(random_password.proxy.bcrypt_hash)
@@ -69,23 +69,23 @@ resource "docker_config" "this" {
 }
 
 module "backend" {
-  source   = "./stacks/backend"
+  source   = "../../modules/docker-swarm/stacks/backend"
   docker   = module.swarm_cluster.docker
-  env      = local.env
+  env      = var.env
   registry = local.registry
 }
 
 module "qrm" {
-  source               = "./stacks/qrm"
+  source               = "../../modules/docker-swarm/stacks/qrm"
   docker_config_name   = docker_config.this[local.docker_configs.qrm_app.name].name
   root_domain          = local.root_domain
   storage_account_name = module.nfs.account
   nfs_endpoint         = module.nfs.endpoint
-  env                  = local.env
+  env                  = var.env
 }
 
 module "monitoring" {
-  source                 = "./stacks/monitoring"
+  source                 = "../../modules/docker-swarm/stacks/monitoring"
   storage_account_name   = module.nfs.account
   nfs_endpoint           = module.nfs.endpoint
   root_domain            = local.root_domain
@@ -96,7 +96,7 @@ module "monitoring" {
 }
 
 module "proxy" {
-  source              = "./stacks/proxy"
+  source              = "../../modules/docker-swarm/stacks/proxy"
   dynamic_config_name = docker_config.this[local.docker_configs.tarefik_dynamic.name].name
   network_name        = "proxy"
   nfs_device          = "${module.nfs.account}/${azurerm_storage_container.tarefik_tls.name}"
@@ -107,8 +107,8 @@ module "proxy" {
 
 locals {
   stacks = {
-    ethical_ad_server = base64encode(templatefile("${path.module}/stacks/backend/docker-compose.yaml", {
-      ENV                           = local.env
+    ethical_ad_server = base64encode(templatefile("../../modules/docker-swarm/stacks/backend/docker-compose.yaml", {
+      ENV                           = var.env
       AZURE_ACCOUNT_NAME            = module.blob.account
       AZURE_ACCOUNT_KEY             = module.blob.primary_access_key
       AZURE_CONTAINER               = "ethicaladserver"
@@ -129,17 +129,17 @@ locals {
       SMTP_PASSWORD                 = var.smtp.password
     }))
     monitoring = base64encode(module.monitoring.stack)
-    portainer = base64encode(templatefile("${path.module}/stacks/portainer.yaml", {
+    portainer = base64encode(templatefile("../../modules/docker-swarm/stacks/portainer.yaml", {
       root_domain = local.root_domain
     }))
-    docker_tasks = base64encode(templatefile("${path.module}/stacks/docker-tasks.yaml", {
+    docker_tasks = base64encode(templatefile("../../modules/docker-swarm/stacks/docker-tasks.yaml", {
       ADDRESS  = local.registry.address
       USERNAME = local.registry.username
       PASSWORD = local.registry.password
     }))
-    swarm-cronjob = base64encode(file("${path.module}/stacks/swarm-cronjob.yaml"))
+    swarm-cronjob = base64encode(file("../../modules/docker-swarm/stacks/swarm-cronjob.yaml"))
     qrm = base64encode(module.qrm.stack)
-    autoscaler = base64encode(file("${path.module}/stacks/autoscaler.yaml"))
+    autoscaler = base64encode(file("../../modules/docker-swarm/stacks/autoscaler.yaml"))
     proxy = base64encode(module.proxy.stack)
   }
 }

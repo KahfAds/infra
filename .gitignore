@@ -1,8 +1,8 @@
 .terraform/
 .idea
 .vscode
-modules/docker-swarm/azure/v1/manager-token.txt
-modules/docker-swarm/azure/v1/worker-token.txt
+modules/docker-swarm/setup/azure/v1/manager-token.txt
+modules/docker-swarm/setup/azure/v1/worker-token.txt
 *.tfstate*
 *.tfstate.backup
 applications/revive-adserver/new_plan

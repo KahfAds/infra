@@ -3,9 +3,9 @@ locals {
 }
 
 module "ssh_key" {
-  source              = "../../../../ssh-keys/azure/v1"
+  source              = "../../../../../ssh-keys/azure/v1"
   location            = var.location
-  name_prefix         = "${var.name_prefix}-swarm-cluster"
+  name_prefix         = var.name_prefix
   resource_group_name = var.resource_group_name
 }
 
@@ -16,11 +16,20 @@ resource "azurerm_availability_set" "this" {
   platform_fault_domain_count = 2
 }
 
+resource "azurerm_user_assigned_identity" "this" {
+  name                = "${var.name_prefix}-identity"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+}
+
 resource "azurerm_linux_virtual_machine_scale_set" "node" {
+  depends_on = [azurerm_role_assignment.acr, azurerm_role_assignment.this]
   computer_name_prefix = var.name_prefix
   name                = "${var.name_prefix}-vmss"
-  custom_data         = base64encode(templatefile("${path.module}/scripts/docker-install.sh", {
-    JOIN_COMMAND = "sudo ${var.join_command}"
+  custom_data         = base64encode(
+    templatefile("${path.module}/scripts/docker-install.sh", {
+      JOIN_COMMAND = "sudo ${var.join_command}"
+      accessible_registries = var.accessible_registries
   }))
   resource_group_name = var.resource_group_name
   location            = var.location
@@ -59,6 +68,18 @@ resource "azurerm_linux_virtual_machine_scale_set" "node" {
       subnet_id = var.subnet.id
     }
   }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.this.id]
+  }
+}
+
+resource "azurerm_role_assignment" "this" {
+  for_each             = var.roles
+  principal_id         = azurerm_user_assigned_identity.this.principal_id
+  role_definition_name = each.key
+  scope                = each.value
 }
 
 resource "azurerm_network_security_group" "node" {
@@ -194,6 +215,54 @@ resource "azurerm_network_security_group" "node" {
     protocol                   = "Udp"
     source_port_range          = "*"
     destination_port_range     = "4789"
+    source_address_prefix      = var.network.prefix
+    destination_address_prefix = var.network.prefix
+  }
+
+  security_rule {
+    name                   = "Allow-DNS-TCP"
+    priority               = 1012
+    direction              = "Inbound"
+    access                 = "Allow"
+    protocol               = "Tcp"
+    source_port_range      = "*"
+    destination_port_range = "53"
+    source_address_prefix  = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                   = "Allow-DNS-UDP"
+    priority               = 1013
+    direction              = "Inbound"
+    access                 = "Allow"
+    protocol               = "Udp"
+    source_port_range      = "*"
+    destination_port_range = "53"
+    source_address_prefix  = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "DockerPrometheus"
+    priority                   = 1014
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "9323"
+    source_address_prefix      = var.network.prefix
+    destination_address_prefix = var.network.prefix
+  }
+
+  security_rule {
+    name                       = "PrometheusNodeExporter"
+    priority                   = 1015
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "9100"
     source_address_prefix      = var.network.prefix
     destination_address_prefix = var.network.prefix
   }

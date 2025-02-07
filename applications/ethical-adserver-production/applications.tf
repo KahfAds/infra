@@ -1,16 +1,16 @@
 locals {
   docker_configs = {
     loki = {
-      name    = "loki"
-      content = file("${path.module}/stacks/monitoring/loki.yaml")
+      name = "loki"
+      content = file("../../modules/docker-swarm/stacks/monitoring/loki.yaml")
     }
     promtail = {
-      name    = "promtail"
-      content = file("${path.module}/stacks/monitoring/promtail.yaml")
+      name = "promtail"
+      content = file("../../modules/docker-swarm/stacks/monitoring/promtail.yaml")
     }
     qrm_app = {
       name = "qrm_app"
-      content = templatefile("${path.module}/stacks/qrm/.env", {
+      content = templatefile("../../modules/docker-swarm/stacks/qrm/.env", {
         APP_ENV                = "production"
         APP_KEY                = var.qrm.app_key
         APP_DEBUG              = false
@@ -27,21 +27,21 @@ locals {
       })
     },
     prometheus = {
-      name    = "prometheus"
-      content = file("${path.module}/stacks/monitoring/prometheus.yaml")
+      name = "prometheus"
+      content = file("../../modules/docker-swarm/stacks/monitoring/prometheus.yaml")
     }
     tarefik_static = {
       name = "tarefik_static"
-      content = templatefile("${path.module}/stacks/proxy/traefik.yaml", {
+      content = templatefile("../../modules/docker-swarm/stacks/proxy/traefik.yaml", {
         acme_email = "mazharul+30@kahf.co"
       })
     }
     tarefik_dynamic = {
       name = "tarefik_dynamic"
-      content = templatefile("${path.module}/stacks/proxy/dynamic.yaml", {
-        GOOGLE_OIDC_CLIENT_ID          = var.proxy_dashboard.oidc_client_id
-        GOOGLE_OIDC_CLIENT_SECRET      = var.proxy_dashboard.oidc_client_secret
-        GOOGLE_OIDC_COOKIE_PASSWORD    = base64encode(random_password.proxy.bcrypt_hash)
+      content = templatefile("../../modules/docker-swarm/stacks/proxy/dynamic.yaml", {
+        GOOGLE_OIDC_CLIENT_ID     = var.proxy_dashboard.oidc_client_id
+        GOOGLE_OIDC_CLIENT_SECRET = var.proxy_dashboard.oidc_client_secret
+        GOOGLE_OIDC_COOKIE_PASSWORD = base64encode(random_password.proxy.bcrypt_hash)
         GOOGLE_OIDC_AUTHORIZED_DOMAINS = ["kahf.co"]
       })
     }
@@ -69,23 +69,23 @@ resource "docker_config" "this" {
 }
 
 module "backend" {
-  source   = "./stacks/backend"
+  source   = "../../modules/docker-swarm/stacks/backend"
   docker   = module.swarm_cluster.docker
-  env      = local.env
+  env      = var.env
   registry = local.registry
 }
 
 module "qrm" {
-  source               = "./stacks/qrm"
+  source               = "../../modules/docker-swarm/stacks/qrm"
   docker_config_name   = docker_config.this[local.docker_configs.qrm_app.name].name
   root_domain          = local.root_domain
   storage_account_name = module.nfs.account
   nfs_endpoint         = module.nfs.endpoint
-  env                  = local.env
+  env                  = var.env
 }
 
 module "monitoring" {
-  source                 = "./stacks/monitoring"
+  source                 = "../../modules/docker-swarm/stacks/monitoring"
   storage_account_name   = module.nfs.account
   nfs_endpoint           = module.nfs.endpoint
   root_domain            = local.root_domain
@@ -96,7 +96,7 @@ module "monitoring" {
 }
 
 module "proxy" {
-  source              = "./stacks/proxy"
+  source              = "../../modules/docker-swarm/stacks/proxy"
   dynamic_config_name = docker_config.this[local.docker_configs.tarefik_dynamic.name].name
   network_name        = "proxy"
   nfs_device          = "${module.nfs.account}/${azurerm_storage_container.tarefik_tls.name}"
@@ -107,8 +107,8 @@ module "proxy" {
 
 locals {
   stacks = {
-    ethical_ad_server = base64encode(templatefile("${path.module}/stacks/backend/docker-compose.yaml", {
-      ENV                           = local.env
+    ethical_ad_server = base64encode(templatefile("../../modules/docker-swarm/stacks/backend/docker-compose.yaml", {
+      ENV                           = var.env
       AZURE_ACCOUNT_NAME            = module.blob.account
       AZURE_ACCOUNT_KEY             = module.blob.primary_access_key
       AZURE_CONTAINER               = "ethicaladserver"
@@ -118,6 +118,7 @@ locals {
       METABASE_SECRET_KEY           = var.metabase_secret_key
       METABASE_EMBED_KEY            = var.metabase_embed_key
       POSTGRES_HOST                 = azurerm_postgresql_flexible_server.this.fqdn
+      POSTGRES_REPLICA_HOST         = azurerm_postgresql_flexible_server.replica.fqdn
       POSTGRES_USER                 = local.database_user
       POSTGRES_PASSWORD             = azurerm_postgresql_flexible_server.this.administrator_password
       ROOT_DOMAIN                   = local.root_domain
@@ -128,24 +129,40 @@ locals {
       SMTP_PASSWORD                 = var.smtp.password
     }))
     monitoring = base64encode(module.monitoring.stack)
-    portainer = base64encode(templatefile("${path.module}/stacks/portainer.yaml", {
+    portainer = base64encode(templatefile("../../modules/docker-swarm/stacks/portainer.yaml", {
       root_domain = local.root_domain
     }))
-    docker_tasks = base64encode(templatefile("${path.module}/stacks/docker-tasks.yaml", {
+    docker_tasks = base64encode(templatefile("../../modules/docker-swarm/stacks/docker-tasks.yaml", {
       ADDRESS  = local.registry.address
       USERNAME = local.registry.username
       PASSWORD = local.registry.password
     }))
-    swarm-cronjob = base64encode(file("${path.module}/stacks/swarm-cronjob.yaml"))
-    qrm           = base64encode(module.qrm.stack)
-    autoscaler    = base64encode(file("${path.module}/stacks/autoscaler.yaml"))
-    proxy         = base64encode(module.proxy.stack)
+    swarm-cronjob = base64encode(file("../../modules/docker-swarm/stacks/swarm-cronjob.yaml"))
+    qrm = base64encode(module.qrm.stack)
+    autoscaler = base64encode(file("../../modules/docker-swarm/stacks/autoscaler.yaml"))
+    proxy = base64encode(module.proxy.stack)
+  }
+}
+
+resource "null_resource" "shared_networks" {
+  depends_on = [module.swarm_cluster]
+  connection {
+    type        = "ssh"
+    user        = module.swarm_cluster.ssh.username
+    private_key = module.swarm_cluster.ssh.private_key_pem
+    host        = module.swarm_cluster.ssh.ip_addresses.leader
+  }
+  provisioner "remote-exec" {
+    inline = [
+      "sudo docker network create proxy_channel --attachable=true --driver=overlay --scope=swarm",
+      "sudo docker network create monitoring_channel --attachable=true --driver=overlay --scope=swarm"
+    ]
   }
 }
 
 resource "null_resource" "stack_deployments" {
-  depends_on = [module.swarm_cluster]
-  for_each   = local.stacks
+  depends_on = [null_resource.shared_networks]
+  for_each = local.stacks
   connection {
     user        = self.triggers.user_name
     type        = "ssh"
@@ -170,17 +187,17 @@ resource "null_resource" "stack_deployments" {
   }
 
   triggers = {
-    user_name            = module.swarm_cluster.ssh.username
-    private_key          = module.swarm_cluster.ssh.private_key_pem
-    host                 = module.swarm_cluster.ssh.ip_addresses.leader
-    key                  = each.key
+    user_name   = module.swarm_cluster.ssh.username
+    private_key = module.swarm_cluster.ssh.private_key_pem
+    host        = module.swarm_cluster.ssh.ip_addresses.leader
+    key         = each.key
     compose_file_content = base64decode(each.value)
   }
 }
 
 resource "null_resource" "stack_removal" {
   depends_on = [module.swarm_cluster]
-  for_each   = local.stacks
+  for_each = local.stacks
 
   connection {
     user        = self.triggers.user_name
@@ -190,7 +207,7 @@ resource "null_resource" "stack_removal" {
   }
 
   provisioner "remote-exec" {
-    when   = destroy
+    when = destroy
     inline = ["sudo docker stack rm ${each.key}"]
   }
 

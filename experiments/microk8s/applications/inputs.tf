@@ -1,3 +1,3 @@
 variable "root_domain" {
-  default = "kahfgpt.com"
+  default = "ababil.xyz"
 }

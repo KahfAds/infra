@@ -1,0 +1,4 @@
+ENV:
+  AUTH_HOST: ${auth_host}
+  DOMAIN: ${domain}
+  COOKIE_DOMAIN: ${cookie_domain}

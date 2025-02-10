@@ -8,4 +8,6 @@ locals {
   qrm = {
     app_url = "https://qr.${local.root_domain}"
   }
+  error_notification_admins = "mazharul,mazharul@kahf.co;"
+  server_email = "no-reply@kahfads.com"
 }

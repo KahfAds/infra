@@ -11,7 +11,7 @@ services:
       placement:
         constraints: [node.platform.os == linux]
 
-  portainer:
+  server:
     image: portainer/portainer-ce:2.21.2
     command: -H tcp://tasks.agent:9001 --tlsskipverify
     volumes:
@@ -44,3 +44,8 @@ networks:
 
 volumes:
   portainer_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "nfsvers=3,addr=${nfs_endpoint},nolock,soft,rw"
+      device: ":/${nfs_device}"

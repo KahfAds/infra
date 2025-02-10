@@ -95,6 +95,13 @@ module "monitoring" {
   promtail_config_name   = docker_config.this[local.docker_configs.promtail.name].name
 }
 
+module "portainer" {
+  source               = "../../modules/docker-swarm/stacks/portainer"
+  storage_account_name = module.nfs.account
+  nfs_endpoint         = module.nfs.endpoint
+  root_domain          = local.root_domain
+}
+
 module "proxy" {
   source              = "../../modules/docker-swarm/stacks/proxy"
   dynamic_config_name = docker_config.this[local.docker_configs.tarefik_dynamic.name].name
@@ -131,9 +138,7 @@ locals {
       SERVER_EMAIL                  = local.server_email
     }))
     monitoring = base64encode(module.monitoring.stack)
-    portainer = base64encode(templatefile("../../modules/docker-swarm/stacks/portainer.yaml", {
-      root_domain = local.root_domain
-    }))
+    portainer = base64encode(module.portainer.stack)
     docker_tasks = base64encode(templatefile("../../modules/docker-swarm/stacks/docker-tasks.yaml", {
       ADDRESS  = local.registry.address
       USERNAME = local.registry.username

@@ -127,6 +127,8 @@ locals {
       SMTP_PORT                     = var.smtp.port
       SMTP_USER                     = var.smtp.username
       SMTP_PASSWORD                 = var.smtp.password
+      ADMINS                        = local.error_notification_admins
+      SERVER_EMAIL                  = local.server_email
     }))
     monitoring = base64encode(module.monitoring.stack)
     portainer = base64encode(templatefile("../../modules/docker-swarm/stacks/portainer.yaml", {

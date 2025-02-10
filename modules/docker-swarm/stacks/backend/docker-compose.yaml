@@ -73,6 +73,8 @@ services:
       - monitoring_channel
       - proxy_channel
     deploy:
+      update_config:
+        order: start-first
       mode: replicated
       replicas: 1
       labels:

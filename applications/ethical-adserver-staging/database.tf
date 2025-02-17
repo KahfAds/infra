@@ -47,7 +47,7 @@ resource "azurerm_postgresql_flexible_server" "this" {
   administrator_login    = local.database_user
   administrator_password = random_password.database.result
 
-  sku_name   = "GP_Standard_D2ds_v5"
+  sku_name   = "B_Standard_B1ms"
   version    = "16"
   storage_mb = 65536
 
@@ -67,23 +67,6 @@ resource "azurerm_postgresql_flexible_server" "this" {
       high_availability.0.standby_availability_zone
     ]
   }
-}
-
-resource "azurerm_postgresql_flexible_server" "replica" {
-  name                = "${local.name_prefix}-${var.env}-read-replica"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  version             = azurerm_postgresql_flexible_server.this.version
-
-  storage_mb = azurerm_postgresql_flexible_server.this.storage_mb
-  sku_name   = azurerm_postgresql_flexible_server.this.sku_name
-  delegated_subnet_id = azurerm_postgresql_flexible_server.this.delegated_subnet_id
-  auto_grow_enabled = true
-  create_mode = "Replica"
-  source_server_id    = azurerm_postgresql_flexible_server.this.id
-  private_dns_zone_id = azurerm_private_dns_zone.database.id
-  public_network_access_enabled = false
-  zone = "2"
 }
 
 resource "azurerm_postgresql_flexible_server_database" "backend" {
@@ -125,72 +108,29 @@ resource "azurerm_postgresql_flexible_server_configuration" "require_secure_tran
   value     = "on"
 }
 
-resource "azurerm_postgresql_flexible_server_configuration" "require_secure_transport_replica" {
-  name      = "require_secure_transport"
-  server_id = azurerm_postgresql_flexible_server.replica.id
-  value     = "on"
-}
+# resource "azurerm_postgresql_flexible_server_configuration" "pg_bouncer" {
+#   name      = "pgbouncer.enabled"
+#   server_id = azurerm_postgresql_flexible_server.this.id
+#   value     = true
+# }
+#
+# resource "azurerm_postgresql_flexible_server_configuration" "default_pool_size" {
+#   name      = "pgbouncer.default_pool_size"
+#   server_id = azurerm_postgresql_flexible_server.this.id
+#   value     = 4950
+# }
+#
+# resource "azurerm_postgresql_flexible_server_configuration" "server_idle_timeout" {
+#   name      = "pgbouncer.server_idle_timeout"
+#   server_id = azurerm_postgresql_flexible_server.this.id
+#   value     = 30
+# }
 
-resource "azurerm_postgresql_flexible_server_configuration" "max_connections" {
-  depends_on = [azurerm_postgresql_flexible_server_configuration.max_connections_replica]
-  name      = "max_connections"
-  server_id = azurerm_postgresql_flexible_server.this.id
-  value     = 1000
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "max_connections_replica" {
-  name      = "max_connections"
-  server_id = azurerm_postgresql_flexible_server.replica.id
-  value     = 1001
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "pg_bouncer" {
-  name      = "pgbouncer.enabled"
-  server_id = azurerm_postgresql_flexible_server.this.id
-  value     = true
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "pg_bouncer_replica" {
-  name      = "pgbouncer.enabled"
-  server_id = azurerm_postgresql_flexible_server.replica.id
-  value     = true
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "default_pool_size" {
-  name      = "pgbouncer.default_pool_size"
-  server_id = azurerm_postgresql_flexible_server.this.id
-  value     = 4950
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "default_pool_size_replica" {
-  name      = "pgbouncer.default_pool_size"
-  server_id = azurerm_postgresql_flexible_server.replica.id
-  value     = 4950
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "server_idle_timeout" {
-  name      = "pgbouncer.server_idle_timeout"
-  server_id = azurerm_postgresql_flexible_server.this.id
-  value     = 30
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "server_idle_timeout_replica" {
-  name      = "pgbouncer.server_idle_timeout"
-  server_id = azurerm_postgresql_flexible_server.replica.id
-  value     = 30
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "pgbouncer_diagnostics" {
-  name      = "metrics.pgbouncer_diagnostics"
-  server_id = azurerm_postgresql_flexible_server.this.id
-  value     = "on"
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "pgbouncer_diagnostics_replica" {
-  name      = "metrics.pgbouncer_diagnostics"
-  server_id = azurerm_postgresql_flexible_server.replica.id
-  value     = "on"
-}
+# resource "azurerm_postgresql_flexible_server_configuration" "pgbouncer_diagnostics" {
+#   name      = "metrics.pgbouncer_diagnostics"
+#   server_id = azurerm_postgresql_flexible_server.this.id
+#   value     = "on"
+# }
 
 resource "azurerm_postgresql_flexible_server_configuration" "extensions" {
   name      = "azure.extensions"
@@ -198,8 +138,68 @@ resource "azurerm_postgresql_flexible_server_configuration" "extensions" {
   value     = "citext,pg_trgm,postgis,timescaledb,hstore,uuid-ossp,plpgsql,pg_stat_statements,vector"
 }
 
-resource "azurerm_postgresql_flexible_server_configuration" "extensions_replica" {
-  name      = "azure.extensions"
-  server_id = azurerm_postgresql_flexible_server.replica.id
-  value     = "citext,pg_trgm,postgis,timescaledb,hstore,uuid-ossp,plpgsql,pg_stat_statements,vector"
-}
+# resource "azurerm_postgresql_flexible_server" "replica" {
+#   name                = "${local.name_prefix}-${var.env}-read-replica"
+#   resource_group_name = azurerm_resource_group.this.name
+#   location            = azurerm_resource_group.this.location
+#   version             = azurerm_postgresql_flexible_server.this.version
+#
+#   storage_mb = azurerm_postgresql_flexible_server.this.storage_mb
+#   sku_name   = azurerm_postgresql_flexible_server.this.sku_name
+#   delegated_subnet_id = azurerm_postgresql_flexible_server.this.delegated_subnet_id
+#   auto_grow_enabled = true
+#   create_mode = "Replica"
+#   source_server_id    = azurerm_postgresql_flexible_server.this.id
+#   private_dns_zone_id = azurerm_private_dns_zone.database.id
+#   public_network_access_enabled = false
+#   zone = "2"
+# }
+
+# resource "azurerm_postgresql_flexible_server_configuration" "require_secure_transport_replica" {
+#   name      = "require_secure_transport"
+#   server_id = azurerm_postgresql_flexible_server.replica.id
+#   value     = "on"
+# }
+
+# resource "azurerm_postgresql_flexible_server_configuration" "max_connections" {
+#   depends_on = [azurerm_postgresql_flexible_server_configuration.max_connections_replica]
+#   name      = "max_connections"
+#   server_id = azurerm_postgresql_flexible_server.this.id
+#   value     = 1000
+# }
+
+# resource "azurerm_postgresql_flexible_server_configuration" "max_connections_replica" {
+#   name      = "max_connections"
+#   server_id = azurerm_postgresql_flexible_server.replica.id
+#   value     = 1001
+# }
+
+# resource "azurerm_postgresql_flexible_server_configuration" "pg_bouncer_replica" {
+#   name      = "pgbouncer.enabled"
+#   server_id = azurerm_postgresql_flexible_server.replica.id
+#   value     = true
+# }
+
+# resource "azurerm_postgresql_flexible_server_configuration" "default_pool_size_replica" {
+#   name      = "pgbouncer.default_pool_size"
+#   server_id = azurerm_postgresql_flexible_server.replica.id
+#   value     = 4950
+# }
+
+# resource "azurerm_postgresql_flexible_server_configuration" "server_idle_timeout_replica" {
+#   name      = "pgbouncer.server_idle_timeout"
+#   server_id = azurerm_postgresql_flexible_server.replica.id
+#   value     = 30
+# }
+
+# resource "azurerm_postgresql_flexible_server_configuration" "pgbouncer_diagnostics_replica" {
+#   name      = "metrics.pgbouncer_diagnostics"
+#   server_id = azurerm_postgresql_flexible_server.replica.id
+#   value     = "on"
+# }
+
+# resource "azurerm_postgresql_flexible_server_configuration" "extensions_replica" {
+#   name      = "azure.extensions"
+#   server_id = azurerm_postgresql_flexible_server.replica.id
+#   value     = "citext,pg_trgm,postgis,timescaledb,hstore,uuid-ossp,plpgsql,pg_stat_statements,vector"
+# }

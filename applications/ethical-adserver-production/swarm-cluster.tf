@@ -23,5 +23,5 @@ module "swarm_cluster" {
     max = 0
     desired = 0
   }
-  manager_replica = 1
+  manager_replica = 2
 }

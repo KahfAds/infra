@@ -6,3 +6,9 @@ output "this" {
     }
   }
 }
+
+output "storage" {
+  value = {
+    nfs = module.nfs.account
+  }
+}

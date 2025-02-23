@@ -24,4 +24,5 @@ module "swarm_cluster" {
     desired = 0
   }
   manager_replica = 2
+  create_docker_context = true
 }

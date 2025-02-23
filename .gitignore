@@ -12,3 +12,4 @@ applications/revive-adserver/new_plan
 experiments/microk8s/ssh-keys
 experiments/microk8s/kubeconfig.yaml
 experiments/microk8s/applications/kubeconfig.yaml
+*.pem

@@ -11,6 +11,7 @@ module "manager" {
   subnet = var.subnet
   docker_secrets = var.docker_secrets
   replica = var.manager_replica
+  create_docker_context = var.create_docker_context
 }
 
 module "worker" {

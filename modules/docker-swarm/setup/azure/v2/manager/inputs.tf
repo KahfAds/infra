@@ -47,3 +47,7 @@ variable "replica" {
   type = number
   default = 2
 }
+
+variable "create_docker_context" {
+  type = bool
+}

@@ -135,13 +135,13 @@ resource "azurerm_postgresql_flexible_server_configuration" "max_connections" {
   depends_on = [azurerm_postgresql_flexible_server_configuration.max_connections_replica]
   name      = "max_connections"
   server_id = azurerm_postgresql_flexible_server.this.id
-  value     = 1000
+  value     = 4500
 }
 
 resource "azurerm_postgresql_flexible_server_configuration" "max_connections_replica" {
   name      = "max_connections"
   server_id = azurerm_postgresql_flexible_server.replica.id
-  value     = 1001
+  value     = 4999
 }
 
 resource "azurerm_postgresql_flexible_server_configuration" "pg_bouncer" {

@@ -5,7 +5,7 @@ volumes:
 
 x-web-env: &django-env
   environment:
-    - DEBUG=True
+    - DEBUG=False
     - USE_DOCKER=true
     - IPYTHONDIR=/app/.ipython
     - MEDIA_URL=https://app.${ROOT_DOMAIN}/media/
@@ -88,8 +88,9 @@ services:
         - traefik.docker.network=proxy_channel
         - traefik.http.routers.ads-backend.entrypoints=web,websecure
         - traefik.http.routers.ads-backend.rule=Host(`app.${ROOT_DOMAIN}`)
-        - traefik.http.routers.ads-backend.middlewares=redirectToHttps@file
+        - traefik.http.routers.ads-backend.middlewares=redirectToHttps@file,block-metrics
         - traefik.http.services.ads-backend.loadbalancer.server.port=5000
+        - traefik.http.middlewares.block-metrics.plugin.blockpath.regex=^/prometheus(.*)
         - swarm.autoscaler=true
         - swarm.autoscaler.maximum=6
         - swarm.autoscaler.minimum=3

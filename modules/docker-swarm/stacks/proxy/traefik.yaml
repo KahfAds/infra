@@ -33,6 +33,9 @@ experimental:
     google-oidc-auth:
       moduleName: github.com/andrewkroh/google-oidc-auth-middleware
       version: v0.1.0
+    blockpath:
+      moduleName: github.com/traefik/plugin-blockpath
+      version: v0.2.1
 
 log:
   level: DEBUG

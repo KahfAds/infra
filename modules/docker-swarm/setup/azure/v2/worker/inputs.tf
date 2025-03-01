@@ -22,7 +22,7 @@ variable "network" {
 }
 
 variable "size" {
-  default = "Standard_B2s"
+  default = "Standard_D4ads_v5"
 }
 
 variable "custom_data" {

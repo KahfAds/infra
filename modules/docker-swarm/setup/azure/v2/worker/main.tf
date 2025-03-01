@@ -50,11 +50,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "node" {
   }
 
   os_disk {
-    caching              = "ReadOnly"
+    caching              = "ReadWrite"
+    disk_size_gb = 200
     storage_account_type = "Standard_LRS"
-    diff_disk_settings {
-      option = "Local"
-    }
   }
 
   network_interface {

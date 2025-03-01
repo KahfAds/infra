@@ -7,10 +7,10 @@ module "swarm_cluster" {
   source = "../../modules/docker-swarm/setup/azure/v2"
 
   accessible_registries = [azurerm_container_registry.this.name]
-  location               = local.location
-  manager_0_private_ip   = local.manager_0_private_ip
-  name_prefix            = "${local.name_prefix}-${var.env}"
-  resource_group_name    = azurerm_resource_group.this.name
+  location             = local.location
+  manager_0_private_ip = local.manager_0_private_ip
+  name_prefix          = "${local.name_prefix}-${var.env}"
+  resource_group_name  = azurerm_resource_group.this.name
   subnet = {
     id     = module.core_network.vnet_subnets[0]
     prefix = local.subnets[0].prefix
@@ -19,10 +19,10 @@ module "swarm_cluster" {
     prefix = module.core_network.vnet_address_space[0]
   }
   worker_scale = {
-    min = 0
-    max = 0
-    desired = 0
+    min     = 9
+    max     = 9
+    desired = 9
   }
-  manager_replica = 2
+  manager_replica       = 2
   create_docker_context = true
 }

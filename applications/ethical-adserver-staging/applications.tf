@@ -114,7 +114,7 @@ module "proxy" {
 
 locals {
   stacks = {
-    ethical_ad_server = base64encode(templatefile("../../modules/docker-swarm/stacks/backend/docker-compose.yaml", {
+    ethical_ad_server = base64encode(templatefile("../../modules/docker-swarm/stacks/backend/docker-compose-${var.env}.yaml", {
       ENV                           = var.env
       AZURE_ACCOUNT_NAME            = module.blob.account
       AZURE_ACCOUNT_KEY             = module.blob.primary_access_key
@@ -138,6 +138,9 @@ locals {
       SMTP_PASSWORD                 = var.smtp.password
       ADMINS                        = local.error_notification_admins
       SERVER_EMAIL                  = local.server_email
+      desired                       = 3
+      min                           = 3
+      max                           = 3
     }))
     monitoring = base64encode(module.monitoring.stack)
     portainer = base64encode(module.portainer.stack)

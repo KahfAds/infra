@@ -114,7 +114,7 @@ module "proxy" {
 
 locals {
   stacks = {
-    ethical_ad_server = base64encode(templatefile("../../modules/docker-swarm/stacks/backend/docker-compose.yaml", {
+    ethical_ad_server = base64encode(templatefile("../../modules/docker-swarm/stacks/backend/docker-compose-${var.env}.yaml", {
       ENV                           = var.env
       AZURE_ACCOUNT_NAME            = module.blob.account
       AZURE_ACCOUNT_KEY             = module.blob.primary_access_key
@@ -125,7 +125,7 @@ locals {
       METABASE_SECRET_KEY           = var.metabase_secret_key
       METABASE_EMBED_KEY            = var.metabase_embed_key
       DATABASE_URL                  = "psql://${local.database_user}:${azurerm_postgresql_flexible_server.this.administrator_password}@${azurerm_postgresql_flexible_server.this.fqdn}:6432/ethicaladserver" #6432 pgbouncer https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-pgbouncer#switching-your-application-to-use-pgbouncer
-      REPLICA_DATABASE_URL          = "psql://${local.database_user}:${azurerm_postgresql_flexible_server.this.administrator_password}@${azurerm_postgresql_flexible_server.replica.fqdn}:5432/ethicaladserver"
+      REPLICA_DATABASE_URL          = "psql://${local.database_user}:${azurerm_postgresql_flexible_server.this.administrator_password}@${azurerm_postgresql_flexible_server.replica.fqdn}:6432/ethicaladserver"
       POSTGRES_HOST                 = azurerm_postgresql_flexible_server.this.fqdn
       POSTGRES_REPLICA_HOST         = azurerm_postgresql_flexible_server.replica.fqdn
       POSTGRES_USER                 = local.database_user
@@ -138,6 +138,9 @@ locals {
       SMTP_PASSWORD                 = var.smtp.password
       ADMINS                        = local.error_notification_admins
       SERVER_EMAIL                  = local.server_email
+      desired                       = 24
+      min                           = 15
+      max                           = 40
     }))
     monitoring = base64encode(module.monitoring.stack)
     portainer = base64encode(module.portainer.stack)

@@ -10,7 +10,7 @@ x-web-env: &django-env
     - IPYTHONDIR=/app/.ipython
     - MEDIA_URL=https://app.${ROOT_DOMAIN}/media/
     - REDIS_URL=redis://redis:6379/0
-    - DATABASE_ROUTER=adserver.router.ReplicaRouter
+    - DATABASE_ROUTERS=adserver.router.ReportingRouter,adserver.router.DefaultRouter
     - DATABASE_URL=${DATABASE_URL}
     - REPLICA_DATABASE_URL=${REPLICA_DATABASE_URL}
     - METABASE_SITE_URL=https://metabase.${ROOT_DOMAIN}
@@ -70,6 +70,7 @@ services:
       - "--host=0.0.0.0"
       - "--port=5000"
       - "--lifespan=off"
+      - "--workers=4"
     volumes:
       - local_media:/app/media
     <<: *django-env
@@ -81,7 +82,7 @@ services:
       update_config:
         order: start-first
       mode: replicated
-      replicas: 1
+      replicas: ${desired}
       labels:
         - logs.collector=loki
         - traefik.enable=true
@@ -92,8 +93,8 @@ services:
         - traefik.http.services.ads-backend.loadbalancer.server.port=5000
         - traefik.http.middlewares.block-metrics.plugin.blockpath.regex=^/prometheus(.*)
         - swarm.autoscaler=true
-        - swarm.autoscaler.maximum=6
-        - swarm.autoscaler.minimum=3
+        - swarm.autoscaler.maximum=${max}
+        - swarm.autoscaler.minimum=${min}
 
   redis:
     image: redis:5.0

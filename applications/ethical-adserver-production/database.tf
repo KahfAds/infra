@@ -82,7 +82,7 @@ module "postgres_replicas" {
     dns_zone_id = azurerm_postgresql_flexible_server.this.private_dns_zone_id
     zone = azurerm_postgresql_flexible_server.this.zone
   }
-  replica_count = 3
+  replica_count = 4
   resource_group = {
     name = azurerm_resource_group.this.name
     location = azurerm_resource_group.this.location

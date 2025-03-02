@@ -106,7 +106,7 @@ services:
         - traefik.http.middlewares.block-metrics.plugin.blockpath.regex=^/prometheus(.*)
         - traefik.http.middlewares.ads-backend-ratelimit.ratelimit.average=400
         - traefik.http.middlewares.ads-backend-ratelimit.ratelimit.burst=800
-        - traefik.http.middlewares.ads-backend-parallelism.inflightreq.amount=100
+        - traefik.http.middlewares.ads-backend-parallelism.inflightreq.amount=150
         - swarm.autoscaler=true
         - swarm.autoscaler.maximum=${max}
         - swarm.autoscaler.minimum=${min}

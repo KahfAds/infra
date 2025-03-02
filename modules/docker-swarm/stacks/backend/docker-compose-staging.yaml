@@ -2,7 +2,6 @@ volumes:
   local_metabase_data: { }
   local_media: { }
 
-
 x-web-env: &django-env
   environment:
     - DEBUG=False
@@ -53,6 +52,7 @@ x-web-env: &django-env
     - SMTP_PASSWORD=${SMTP_PASSWORD}
     - PROMETHEUS_EXPORT_MIGRATIONS=False
     - SECURE_SSL_REDIRECT=False
+    - PROMETHEUS_MULTIPROC_DIR=/tmp/prometheus
   networks:
     - default
 
@@ -73,6 +73,7 @@ services:
       - "--workers=4"
     volumes:
       - local_media:/app/media
+      - /tmp/prometheus
     <<: *django-env
     networks:
       - default

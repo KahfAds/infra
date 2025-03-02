@@ -12,7 +12,7 @@ x-web-env: &django-env
     - REDIS_URL=redis://redis:6379/0
     - DATABASE_ROUTERS=adserver.router.ReportingRouter,adserver.router.DefaultRouter
     - DATABASE_URL=${DATABASE_URL}
-    - REPLICA_DATABASE_URL=${REPLICA_DATABASE_URL}
+    - DB_REPLICAS=${DB_REPLICAS}
     - METABASE_SITE_URL=https://metabase.${ROOT_DOMAIN}
     - ADSERVER_ANALYZER_BACKEND="adserver.analyzer.backends.TextacyAnalyzerBackend"
     - COLUMNS=80
@@ -53,6 +53,7 @@ x-web-env: &django-env
     - SMTP_PASSWORD=${SMTP_PASSWORD}
     - PROMETHEUS_EXPORT_MIGRATIONS=False
     - SECURE_SSL_REDIRECT=False
+    - PROMETHEUS_MULTIPROC_DIR=/tmp/prometheus
   networks:
     - default
 
@@ -66,6 +67,7 @@ services:
         max-file: "3"
     entrypoint: ["/start"]
     command:
+      - "uvicorn"
       - "config.asgi:application"
       - "--host=0.0.0.0"
       - "--port=5000"
@@ -73,12 +75,17 @@ services:
       - "--workers=4"
     volumes:
       - local_media:/app/media
+      - /tmp/prometheus
     <<: *django-env
     networks:
       - default
       - monitoring_channel
       - proxy_channel
     deploy:
+      resources:
+        reservations:
+          cpus: '\"4.0\"'
+          memory: 8196M
       update_config:
         order: start-first
       mode: replicated
@@ -97,9 +104,9 @@ services:
         - traefik.http.routers.ads-backend.middlewares=redirectToHttps@file,block-metrics,ads-backend-ratelimit,ads-backend-parallelism
         - traefik.http.services.ads-backend.loadbalancer.server.port=5000
         - traefik.http.middlewares.block-metrics.plugin.blockpath.regex=^/prometheus(.*)
-        - traefik.http.middlewares.ads-backend-ratelimit.ratelimit.average=300
-        - traefik.http.middlewares.ads-backend-ratelimit.ratelimit.burst=600
-        - traefik.http.middlewares.ads-backend-parallelism.inflightreq.amount=165
+        - traefik.http.middlewares.ads-backend-ratelimit.ratelimit.average=400
+        - traefik.http.middlewares.ads-backend-ratelimit.ratelimit.burst=800
+        - traefik.http.middlewares.ads-backend-parallelism.inflightreq.amount=100
         - swarm.autoscaler=true
         - swarm.autoscaler.maximum=${max}
         - swarm.autoscaler.minimum=${min}

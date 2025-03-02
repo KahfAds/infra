@@ -135,7 +135,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     command: -config.file=/etc/promtail/config.yml
     deploy:
-      replicas: 1
+      mode: global
     configs:
       - source: promtail
         target: /etc/promtail/config.yml

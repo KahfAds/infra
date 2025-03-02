@@ -97,12 +97,9 @@ services:
         - traefik.http.routers.ads-backend.middlewares=redirectToHttps@file,block-metrics,ads-backend-ratelimit,ads-backend-parallelism
         - traefik.http.services.ads-backend.loadbalancer.server.port=5000
         - traefik.http.middlewares.block-metrics.plugin.blockpath.regex=^/prometheus(.*)
-        - traefik.http.middlewares.ads-backend-buffering.buffering.maxRequestBodyBytes=0
-        - traefik.http.middlewares.ads-backend-buffering.buffering.memRequestBodyBytes=0
-        - traefik.http.middlewares.ads-backend-buffering.buffering.maxResponseBodyBytes=0
-        - traefik.http.middlewares.ads-backend-ratelimit.ratelimit.average=220
-        - traefik.http.middlewares.ads-backend-ratelimit.ratelimit.burst=440
-        - traefik.http.middlewares.ads-backend-parallelism.inflightreq.amount=110
+        - traefik.http.middlewares.ads-backend-ratelimit.ratelimit.average=300
+        - traefik.http.middlewares.ads-backend-ratelimit.ratelimit.burst=600
+        - traefik.http.middlewares.ads-backend-parallelism.inflightreq.amount=165
         - swarm.autoscaler=true
         - swarm.autoscaler.maximum=${max}
         - swarm.autoscaler.minimum=${min}

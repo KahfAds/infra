@@ -138,9 +138,9 @@ locals {
       SMTP_PASSWORD                 = var.smtp.password
       ADMINS                        = local.error_notification_admins
       SERVER_EMAIL                  = local.server_email
-      desired                       = 24
-      min                           = 15
-      max                           = 40
+      desired                       = 42
+      min                           = 42
+      max                           = 42
     }))
     monitoring = base64encode(module.monitoring.stack)
     portainer = base64encode(module.portainer.stack)

@@ -70,7 +70,7 @@ services:
       - "--host=0.0.0.0"
       - "--port=5000"
       - "--lifespan=off"
-      - "--workers=8"
+      - "--workers=4"
     volumes:
       - local_media:/app/media
     <<: *django-env
@@ -94,9 +94,15 @@ services:
         - traefik.docker.network=proxy_channel
         - traefik.http.routers.ads-backend.entrypoints=web,websecure
         - traefik.http.routers.ads-backend.rule=Host(`app.${ROOT_DOMAIN}`)
-        - traefik.http.routers.ads-backend.middlewares=redirectToHttps@file,block-metrics
+        - traefik.http.routers.ads-backend.middlewares=redirectToHttps@file,block-metrics,ads-backend-ratelimit,ads-backend-parallelism
         - traefik.http.services.ads-backend.loadbalancer.server.port=5000
         - traefik.http.middlewares.block-metrics.plugin.blockpath.regex=^/prometheus(.*)
+        - traefik.http.middlewares.ads-backend-buffering.buffering.maxRequestBodyBytes=0
+        - traefik.http.middlewares.ads-backend-buffering.buffering.memRequestBodyBytes=0
+        - traefik.http.middlewares.ads-backend-buffering.buffering.maxResponseBodyBytes=0
+        - traefik.http.middlewares.ads-backend-ratelimit.ratelimit.average=220
+        - traefik.http.middlewares.ads-backend-ratelimit.ratelimit.burst=440
+        - traefik.http.middlewares.ads-backend-parallelism.inflightreq.amount=110
         - swarm.autoscaler=true
         - swarm.autoscaler.maximum=${max}
         - swarm.autoscaler.minimum=${min}

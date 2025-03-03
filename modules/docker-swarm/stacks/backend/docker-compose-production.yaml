@@ -58,7 +58,7 @@ x-web-env: &django-env
     - default
 
 services:
-  django:
+  django: &django
     image: kahfads${ENV}.azurecr.io/ethical-adserver/backend:latest
     logging:
       driver: json-file
@@ -100,16 +100,41 @@ services:
         - traefik.enable=true
         - traefik.docker.network=proxy_channel
         - traefik.http.routers.ads-backend.entrypoints=web,websecure
-        - traefik.http.routers.ads-backend.rule=Host(`app.${ROOT_DOMAIN}`)
-        - traefik.http.routers.ads-backend.middlewares=redirectToHttps@file,block-metrics,ads-backend-ratelimit,ads-backend-parallelism
+        - traefik.http.routers.ads-backend.rule=Host(`app.${ROOT_DOMAIN}`) && (PathPrefix(`/api/v1`) || PathPrefix(`/proxy/view`) || PathPrefix(`/proxy/viewtime`))
+        - traefik.http.routers.ads-backend.middlewares=redirectToHttps@file,ads-backend-ratelimit,ads-backend-parallelism
         - traefik.http.services.ads-backend.loadbalancer.server.port=5000
-        - traefik.http.middlewares.block-metrics.plugin.blockpath.regex=^/prometheus(.*)
         - traefik.http.middlewares.ads-backend-ratelimit.ratelimit.average=400
         - traefik.http.middlewares.ads-backend-ratelimit.ratelimit.burst=800
         - traefik.http.middlewares.ads-backend-parallelism.inflightreq.amount=150
         - swarm.autoscaler=true
         - swarm.autoscaler.maximum=${max}
         - swarm.autoscaler.minimum=${min}
+
+  django_low_traffic:
+    <<: *django
+    deploy:
+      resources:
+        reservations:
+          cpus: '\"4.0\"'
+          memory: 8196M
+      update_config:
+        order: start-first
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - "node.role == worker"
+        preferences:
+          - spread: node.id
+      labels:
+        - logs.collector=loki
+        - traefik.enable=true
+        - traefik.docker.network=proxy_channel
+        - traefik.http.routers.ads-backend-click.entrypoints=web,websecure
+        - traefik.http.routers.ads-backend-click.rule=Host(`app.${ROOT_DOMAIN}`)
+        - traefik.http.routers.ads-backend-click.middlewares=redirectToHttps@file,block-metrics
+        - traefik.http.services.ads-backend-click.loadbalancer.server.port=5000
+        - traefik.http.middlewares.block-metrics.plugin.blockpath.regex=^/prometheus(.*)
 
   redis:
     image: redis:5.0

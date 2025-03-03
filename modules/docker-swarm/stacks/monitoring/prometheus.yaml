@@ -43,6 +43,14 @@ scrape_configs:
         type: 'A'
         port: 5000
 
+  - job_name: ethical-ad-server-low-traffic
+    metrics_path: /prometheus/metrics
+    dns_sd_configs:
+      - names:
+          - 'tasks.ethical_ad_server_django_low_traffic'  # Docker Swarm tasks DNS name
+        type: 'A'
+        port: 5000
+
   - job_name: ethical-ad-server-celery
     metrics_path: /metrics
     dns_sd_configs:

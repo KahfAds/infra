@@ -14,10 +14,10 @@ x-web-env: &django-env
     - DATABASE_URL=${DATABASE_URL}
     - DB_REPLICAS=${DB_REPLICAS}
     - METABASE_SITE_URL=https://metabase.${ROOT_DOMAIN}
-    - ADSERVER_ANALYZER_BACKEND="adserver.analyzer.backends.TextacyAnalyzerBackend"
+    - ADSERVER_ANALYZER_BACKEND=""
     - COLUMNS=80
     - ETHICALADS_DJANGO_PORT=5000
-    - ALLOWED_HOSTS=app.${ROOT_DOMAIN}
+    - ALLOWED_HOSTS=app.${ROOT_DOMAIN},admin.${ROOT_DOMAIN}
     - SECRET_KEY=${SECRET_KEY}
     - ADSERVER_HTTPS=True
     - DJANGO_SETTINGS_MODULE=config.settings.production
@@ -105,7 +105,7 @@ services:
         - traefik.http.services.ads-backend.loadbalancer.server.port=5000
         - traefik.http.middlewares.ads-backend-ratelimit.ratelimit.average=400
         - traefik.http.middlewares.ads-backend-ratelimit.ratelimit.burst=800
-        - traefik.http.middlewares.ads-backend-parallelism.inflightreq.amount=150
+        - traefik.http.middlewares.ads-backend-parallelism.inflightreq.amount=${max_parallel_request}
         - swarm.autoscaler=true
         - swarm.autoscaler.maximum=${max}
         - swarm.autoscaler.minimum=${min}
@@ -131,7 +131,7 @@ services:
         - traefik.enable=true
         - traefik.docker.network=proxy_channel
         - traefik.http.routers.ads-backend-click.entrypoints=web,websecure
-        - traefik.http.routers.ads-backend-click.rule=Host(`app.${ROOT_DOMAIN}`)
+        - traefik.http.routers.ads-backend-click.rule=Host(`admin.${ROOT_DOMAIN}`)
         - traefik.http.routers.ads-backend-click.middlewares=redirectToHttps@file,block-metrics
         - traefik.http.services.ads-backend-click.loadbalancer.server.port=5000
         - traefik.http.middlewares.block-metrics.plugin.blockpath.regex=^/prometheus(.*)
@@ -145,6 +145,8 @@ services:
       - redis
     <<: *django-env
     command: /start-celeryworker
+    volumes:
+      - /tmp/prometheus
     deploy:
       labels:
         - logs.collector=loki
@@ -162,6 +164,8 @@ services:
     depends_on:
       - redis
     <<: *django-env
+    volumes:
+      - /tmp/prometheus
     command: /start-celerybeat
     deploy:
       labels:

@@ -146,6 +146,7 @@ locals {
       desired                       = 6
       min                           = 6
       max                           = 6
+      max_parallel_request          = 100
     }))
     monitoring = base64encode(module.monitoring.stack)
     portainer = base64encode(module.portainer.stack)

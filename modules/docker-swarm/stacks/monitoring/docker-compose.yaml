@@ -118,6 +118,9 @@ services:
     ports:
       - "3100:3100"
     deploy:
+      placement:
+          constraints:
+            - node.role == manager
       replicas: 1
       resources:
         limits:
@@ -178,6 +181,15 @@ services:
       placement:
         constraints:
           - node.role == manager
+
+%{ for name, conn in databases ~}
+  pg_bouncer_exporter_${name}:
+    image: prometheuscommunity/pgbouncer-exporter
+    command:
+      - "--pgBouncer.connectionString=${conn}/pgbouncer?sslmode=disable&application_name=pgbouncer_exporter"
+    restart: unless-stopped
+%{ endfor ~}
+
 
 volumes:
   grafana-data:

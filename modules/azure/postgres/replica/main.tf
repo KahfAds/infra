@@ -100,6 +100,46 @@ resource "azurerm_postgresql_flexible_server_configuration" "extensions" {
   value     = "citext,pg_trgm,postgis,timescaledb,hstore,uuid-ossp,plpgsql,pg_stat_statements,vector"
 }
 
+resource "azurerm_postgresql_flexible_server_configuration" "idle_in_transaction_session_timeout" {
+  count = var.replica_count
+
+  name      = "idle_in_transaction_session_timeout"
+  server_id = azurerm_postgresql_flexible_server.this[count.index].id
+  value     = 3600000
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "idle_session_timeout" {
+  count = var.replica_count
+
+  name      = "idle_session_timeout"
+  server_id = azurerm_postgresql_flexible_server.this[count.index].id
+  value     = 3600000
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "pg_qs_parameters_capture_mode" {
+  count = var.replica_count
+
+  name      = "pg_qs.query_capture_mode"
+  server_id = azurerm_postgresql_flexible_server.this[count.index].id
+  value     = "TOP"
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "pgms_wait_sampling_query_capture_mode" {
+  count = var.replica_count
+
+  name      = "pgms_wait_sampling.query_capture_mode"
+  server_id = azurerm_postgresql_flexible_server.this[count.index].id
+  value     = "ALL"
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "track_io_timing" {
+  count = var.replica_count
+
+  name      = "track_io_timing"
+  server_id = azurerm_postgresql_flexible_server.this[count.index].id
+  value     = "on"
+}
+
 output "endpoints" {
   value = azurerm_postgresql_flexible_server.this.*.fqdn
 }

@@ -47,7 +47,7 @@ resource "azurerm_postgresql_flexible_server" "this" {
   administrator_login    = local.database_user
   administrator_password = random_password.database.result
 
-  sku_name   = "GP_Standard_D2ds_v5"
+  sku_name   = "GP_Standard_D4ds_v5"
   version    = "16"
   storage_mb = 65536
 
@@ -82,7 +82,7 @@ module "postgres_replicas" {
     dns_zone_id = azurerm_postgresql_flexible_server.this.private_dns_zone_id
     zone = azurerm_postgresql_flexible_server.this.zone
   }
-  replica_count = 4
+  replica_count = 2
   resource_group = {
     name = azurerm_resource_group.this.name
     location = azurerm_resource_group.this.location
@@ -162,4 +162,34 @@ resource "azurerm_postgresql_flexible_server_configuration" "extensions" {
   name      = "azure.extensions"
   server_id = azurerm_postgresql_flexible_server.this.id
   value     = "citext,pg_trgm,postgis,timescaledb,hstore,uuid-ossp,plpgsql,pg_stat_statements,vector"
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "idle_in_transaction_session_timeout" {
+  name      = "idle_in_transaction_session_timeout"
+  server_id = azurerm_postgresql_flexible_server.this.id
+  value     = 3600000
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "idle_session_timeout" {
+  name      = "idle_session_timeout"
+  server_id = azurerm_postgresql_flexible_server.this.id
+  value     = 3600000
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "pg_qs_parameters_capture_mode" {
+  name      = "pg_qs.query_capture_mode"
+  server_id = azurerm_postgresql_flexible_server.this.id
+  value     = "TOP"
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "pgms_wait_sampling_query_capture_mode" {
+  name      = "pgms_wait_sampling.query_capture_mode"
+  server_id = azurerm_postgresql_flexible_server.this.id
+  value     = "ALL"
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "track_io_timing" {
+  name      = "track_io_timing"
+  server_id = azurerm_postgresql_flexible_server.this.id
+  value     = "on"
 }

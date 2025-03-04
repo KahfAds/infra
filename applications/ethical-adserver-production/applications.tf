@@ -1,4 +1,7 @@
 locals {
+  databases = {
+    master = "postgres://${local.database_user}:${azurerm_postgresql_flexible_server.this.administrator_password}@${azurerm_postgresql_flexible_server.this.fqdn}:6432"
+  }
   docker_configs = {
     loki = {
       name = "loki"
@@ -28,7 +31,9 @@ locals {
     },
     prometheus = {
       name = "prometheus"
-      content = file("../../modules/docker-swarm/stacks/monitoring/prometheus.yaml")
+      content = templatefile("../../modules/docker-swarm/stacks/monitoring/prometheus.yaml", {
+        databases = {}
+      })
     }
     tarefik_static = {
       name = "tarefik_static"
@@ -93,6 +98,7 @@ module "monitoring" {
   loki_config_name       = docker_config.this[local.docker_configs.loki.name].name
   loki_disk_mount_point  = local.loki_mount_point
   promtail_config_name   = docker_config.this[local.docker_configs.promtail.name].name
+  # databases              = local.databases
 }
 
 module "portainer" {
@@ -124,9 +130,9 @@ locals {
       SERVER_EMAIL                  = var.sender_email
       METABASE_SECRET_KEY           = var.metabase_secret_key
       METABASE_EMBED_KEY            = var.metabase_embed_key
-      DATABASE_URL                  = "psql://${local.database_user}:${azurerm_postgresql_flexible_server.this.administrator_password}@${azurerm_postgresql_flexible_server.this.fqdn}:6432/ethicaladserver" #6432 pgbouncer https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-pgbouncer#switching-your-application-to-use-pgbouncer
+      DATABASE_URL                  = "psql://${local.database_user}:${azurerm_postgresql_flexible_server.this.administrator_password}@${azurerm_postgresql_flexible_server.this.fqdn}:6432/ethicaladserver?sslmode=require" #6432 pgbouncer https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-pgbouncer#switching-your-application-to-use-pgbouncer
       POSTGRES_HOST                 = azurerm_postgresql_flexible_server.this.fqdn
-      DB_REPLICAS                   = join(",", formatlist("psql://${local.database_user}:${azurerm_postgresql_flexible_server.this.administrator_password}@%s:6432/ethicaladserver", module.postgres_replicas.endpoints))
+      DB_REPLICAS                   = join(",", formatlist("psql://${local.database_user}:${azurerm_postgresql_flexible_server.this.administrator_password}@%s:6432/ethicaladserver?sslmode=require", module.postgres_replicas.endpoints))
       POSTGRES_USER                 = local.database_user
       POSTGRES_PASSWORD             = azurerm_postgresql_flexible_server.this.administrator_password
       ROOT_DOMAIN                   = local.root_domain
@@ -137,9 +143,9 @@ locals {
       SMTP_PASSWORD                 = var.smtp.password
       ADMINS                        = local.error_notification_admins
       SERVER_EMAIL                  = local.server_email
-      desired                       = 10
-      min                           = 10
-      max                           = 10
+      desired                       = 6
+      min                           = 6
+      max                           = 6
     }))
     monitoring = base64encode(module.monitoring.stack)
     portainer = base64encode(module.portainer.stack)

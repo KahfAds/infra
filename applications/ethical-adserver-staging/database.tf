@@ -47,7 +47,7 @@ resource "azurerm_postgresql_flexible_server" "this" {
   administrator_login    = local.database_user
   administrator_password = random_password.database.result
 
-  sku_name   = "B_Standard_B1ms"
+  sku_name   = "GP_Standard_D2ads_v5"
   version    = "16"
   storage_mb = 65536
 
@@ -108,29 +108,35 @@ resource "azurerm_postgresql_flexible_server_configuration" "require_secure_tran
   value     = "on"
 }
 
-# resource "azurerm_postgresql_flexible_server_configuration" "pg_bouncer" {
-#   name      = "pgbouncer.enabled"
-#   server_id = azurerm_postgresql_flexible_server.this.id
-#   value     = true
-# }
-#
-# resource "azurerm_postgresql_flexible_server_configuration" "default_pool_size" {
-#   name      = "pgbouncer.default_pool_size"
-#   server_id = azurerm_postgresql_flexible_server.this.id
-#   value     = 4950
-# }
-#
-# resource "azurerm_postgresql_flexible_server_configuration" "server_idle_timeout" {
-#   name      = "pgbouncer.server_idle_timeout"
-#   server_id = azurerm_postgresql_flexible_server.this.id
-#   value     = 30
-# }
+resource "azurerm_postgresql_flexible_server_configuration" "pg_bouncer" {
+  name      = "pgbouncer.enabled"
+  server_id = azurerm_postgresql_flexible_server.this.id
+  value     = true
+}
 
-# resource "azurerm_postgresql_flexible_server_configuration" "pgbouncer_diagnostics" {
-#   name      = "metrics.pgbouncer_diagnostics"
-#   server_id = azurerm_postgresql_flexible_server.this.id
-#   value     = "on"
-# }
+resource "azurerm_postgresql_flexible_server_configuration" "default_pool_size" {
+  name      = "pgbouncer.default_pool_size"
+  server_id = azurerm_postgresql_flexible_server.this.id
+  value     = 4950
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "server_idle_timeout" {
+  name      = "pgbouncer.server_idle_timeout"
+  server_id = azurerm_postgresql_flexible_server.this.id
+  value     = 30
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "pgbouncer_diagnostics" {
+  name      = "metrics.pgbouncer_diagnostics"
+  server_id = azurerm_postgresql_flexible_server.this.id
+  value     = "on"
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "extra_float_digits" {
+  name      = "extra_float_digits"
+  server_id = azurerm_postgresql_flexible_server.this.id
+  value     = 0
+}
 
 resource "azurerm_postgresql_flexible_server_configuration" "extensions" {
   name      = "azure.extensions"

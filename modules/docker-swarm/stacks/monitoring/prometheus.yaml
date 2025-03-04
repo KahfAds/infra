@@ -15,6 +15,15 @@ scrape_configs:
         type: 'A'
         port: 8080
 
+%{ for name, conn in databases ~}
+  - job_name: 'pgbouncer-${name}'
+    dns_sd_configs:
+      - names:
+          - 'tasks.pg_bouncer_exporter_${name}'
+        type: 'A'
+        port: 9127
+%{ endfor ~}
+
   - job_name: node-exporter
     dockerswarm_sd_configs:
       - host: tcp://tasks.docker-api-socat:2375

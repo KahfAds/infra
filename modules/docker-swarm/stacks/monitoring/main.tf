@@ -9,6 +9,7 @@ output "stack" {
     PROMTAIL_CONFIG_NAME = var.promtail_config_name
     LOKI_DISK_MOUNT_POINT = var.loki_disk_mount_point
     root_domain = var.root_domain
+    databases = var.databases
   })
 }
 
@@ -29,4 +30,9 @@ variable "root_domain" {}
 resource "azurerm_storage_container" "this" {
   name                 = "grafana-data"
   storage_account_name = var.storage_account_name
+}
+
+variable "databases" {
+  type = map(string)
+  default = {}
 }

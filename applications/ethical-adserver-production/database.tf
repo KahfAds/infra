@@ -70,6 +70,14 @@ resource "azurerm_postgresql_flexible_server" "this" {
   }
 }
 
+module "master_server_parameters" {
+  source = "../../modules/azure/postgres/server-parameters"
+  server = {
+    id = azurerm_postgresql_flexible_server.this.id
+    sku_name = azurerm_postgresql_flexible_server.this.sku_name
+  }
+}
+
 module "postgres_replicas" {
   source = "../../modules/azure/postgres/replica"
   master_server = {
@@ -120,76 +128,4 @@ resource "azurerm_postgresql_flexible_server_database" "qr_code_management" {
   lifecycle {
     prevent_destroy = true
   }
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "require_secure_transport" {
-  name      = "require_secure_transport"
-  server_id = azurerm_postgresql_flexible_server.this.id
-  value     = "on"
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "max_connections" {
-  name      = "max_connections"
-  server_id = azurerm_postgresql_flexible_server.this.id
-  value     = 4500
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "pg_bouncer" {
-  name      = "pgbouncer.enabled"
-  server_id = azurerm_postgresql_flexible_server.this.id
-  value     = true
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "default_pool_size" {
-  name      = "pgbouncer.default_pool_size"
-  server_id = azurerm_postgresql_flexible_server.this.id
-  value     = 4950
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "server_idle_timeout" {
-  name      = "pgbouncer.server_idle_timeout"
-  server_id = azurerm_postgresql_flexible_server.this.id
-  value     = 30
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "pgbouncer_diagnostics" {
-  name      = "metrics.pgbouncer_diagnostics"
-  server_id = azurerm_postgresql_flexible_server.this.id
-  value     = "on"
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "extensions" {
-  name      = "azure.extensions"
-  server_id = azurerm_postgresql_flexible_server.this.id
-  value     = "citext,pg_trgm,postgis,timescaledb,hstore,uuid-ossp,plpgsql,pg_stat_statements,vector"
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "idle_in_transaction_session_timeout" {
-  name      = "idle_in_transaction_session_timeout"
-  server_id = azurerm_postgresql_flexible_server.this.id
-  value     = 3600000
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "idle_session_timeout" {
-  name      = "idle_session_timeout"
-  server_id = azurerm_postgresql_flexible_server.this.id
-  value     = 3600000
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "pg_qs_parameters_capture_mode" {
-  name      = "pg_qs.query_capture_mode"
-  server_id = azurerm_postgresql_flexible_server.this.id
-  value     = "TOP"
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "pgms_wait_sampling_query_capture_mode" {
-  name      = "pgms_wait_sampling.query_capture_mode"
-  server_id = azurerm_postgresql_flexible_server.this.id
-  value     = "ALL"
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "track_io_timing" {
-  name      = "track_io_timing"
-  server_id = azurerm_postgresql_flexible_server.this.id
-  value     = "on"
 }

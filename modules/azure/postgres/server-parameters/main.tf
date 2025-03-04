@@ -14,6 +14,14 @@ variable "enable_pgbouncer" {
   default = true
 }
 
+variable "max_connections" {
+  default = 4500
+}
+
+variable "default_pool_size" {
+  default = 4950
+}
+
 resource "azurerm_postgresql_flexible_server_configuration" "require_secure_transport" {
   name      = "require_secure_transport"
   server_id = var.server.id
@@ -23,7 +31,7 @@ resource "azurerm_postgresql_flexible_server_configuration" "require_secure_tran
 resource "azurerm_postgresql_flexible_server_configuration" "max_connections" {
   name      = "max_connections"
   server_id = var.server.id
-  value     = 4500
+  value     = var.max_connections
 }
 
 resource "azurerm_postgresql_flexible_server_configuration" "pg_bouncer" {
@@ -36,14 +44,16 @@ resource "azurerm_postgresql_flexible_server_configuration" "pg_bouncer" {
 
 resource "azurerm_postgresql_flexible_server_configuration" "default_pool_size" {
   count = local.pgbouncer_available && var.enable_pgbouncer ? 1 : 0
+  depends_on = [azurerm_postgresql_flexible_server_configuration.pg_bouncer]
 
   name      = "pgbouncer.default_pool_size"
   server_id = var.server.id
-  value     = 4950
+  value     = var.default_pool_size
 }
 
 resource "azurerm_postgresql_flexible_server_configuration" "server_idle_timeout" {
   count = local.pgbouncer_available && var.enable_pgbouncer ? 1 : 0
+  depends_on = [azurerm_postgresql_flexible_server_configuration.pg_bouncer]
 
   name      = "pgbouncer.server_idle_timeout"
   server_id = var.server.id
@@ -52,6 +62,7 @@ resource "azurerm_postgresql_flexible_server_configuration" "server_idle_timeout
 
 resource "azurerm_postgresql_flexible_server_configuration" "pgbouncer_diagnostics" {
   count = local.pgbouncer_available && var.enable_pgbouncer ? 1 : 0
+  depends_on = [azurerm_postgresql_flexible_server_configuration.pg_bouncer]
 
   name      = "metrics.pgbouncer_diagnostics"
   server_id = var.server.id

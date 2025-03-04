@@ -44,100 +44,15 @@ resource "azurerm_postgresql_flexible_server" "this" {
   zone = var.replica_zone
 }
 
-resource "azurerm_postgresql_flexible_server_configuration" "require_secure_transport" {
+module "server_parameters" {
   count = var.replica_count
 
-  name      = "require_secure_transport"
-  server_id = azurerm_postgresql_flexible_server.this[count.index].id
-  value     = "on"
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "max_connections" {
-  count = var.replica_count
-
-  name      = "max_connections"
-  server_id = azurerm_postgresql_flexible_server.this[count.index].id
-  value     = 4999
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "pg_bouncer" {
-  count = var.replica_count
-
-  name      = "pgbouncer.enabled"
-  server_id = azurerm_postgresql_flexible_server.this[count.index].id
-  value     = true
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "default_pool_size" {
-  count = var.replica_count
-
-  name      = "pgbouncer.default_pool_size"
-  server_id = azurerm_postgresql_flexible_server.this[count.index].id
-  value     = 4950
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "server_idle_timeout" {
-  count = var.replica_count
-
-  name      = "pgbouncer.server_idle_timeout"
-  server_id = azurerm_postgresql_flexible_server.this[count.index].id
-  value     = 30
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "pgbouncer_diagnostics" {
-  count = var.replica_count
-
-  name      = "metrics.pgbouncer_diagnostics"
-  server_id = azurerm_postgresql_flexible_server.this[count.index].id
-  value     = "on"
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "extensions" {
-  count = var.replica_count
-
-  name      = "azure.extensions"
-  server_id = azurerm_postgresql_flexible_server.this[count.index].id
-  value     = "citext,pg_trgm,postgis,timescaledb,hstore,uuid-ossp,plpgsql,pg_stat_statements,vector"
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "idle_in_transaction_session_timeout" {
-  count = var.replica_count
-
-  name      = "idle_in_transaction_session_timeout"
-  server_id = azurerm_postgresql_flexible_server.this[count.index].id
-  value     = 3600000
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "idle_session_timeout" {
-  count = var.replica_count
-
-  name      = "idle_session_timeout"
-  server_id = azurerm_postgresql_flexible_server.this[count.index].id
-  value     = 3600000
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "pg_qs_parameters_capture_mode" {
-  count = var.replica_count
-
-  name      = "pg_qs.query_capture_mode"
-  server_id = azurerm_postgresql_flexible_server.this[count.index].id
-  value     = "TOP"
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "pgms_wait_sampling_query_capture_mode" {
-  count = var.replica_count
-
-  name      = "pgms_wait_sampling.query_capture_mode"
-  server_id = azurerm_postgresql_flexible_server.this[count.index].id
-  value     = "ALL"
-}
-
-resource "azurerm_postgresql_flexible_server_configuration" "track_io_timing" {
-  count = var.replica_count
-
-  name      = "track_io_timing"
-  server_id = azurerm_postgresql_flexible_server.this[count.index].id
-  value     = "on"
+  source = "../server-parameters"
+  max_connections = 4999
+  server = {
+    id = azurerm_postgresql_flexible_server.this[count.index].id
+    sku_name = azurerm_postgresql_flexible_server.this[count.index].sku_name
+  }
 }
 
 output "endpoints" {

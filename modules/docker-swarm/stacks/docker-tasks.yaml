@@ -8,21 +8,21 @@ services:
       mode: global
       labels:
         - "swarm.cronjob.enable=true"
-        - "swarm.cronjob.schedule=0 */5 * * * *"
+        - "swarm.cronjob.schedule=1 12 * * 7"
         - "swarm.cronjob.skip-running=false"
       restart_policy:
         condition: none
 
-  refresh_login_token:
-    image: docker
-    command: [ "docker", "login", "${ADDRESS}", "--username", "${USERNAME}", "--password", "${PASSWORD}" ]
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
-    deploy:
-      mode: global
-      labels:
-        - "swarm.cronjob.enable=true"
-        - "swarm.cronjob.schedule=0 */30 * * * *"
-        - "swarm.cronjob.skip-running=false"
-      restart_policy:
-        condition: none
+#  refresh_login_token:
+#    image: docker
+#    command: [ "docker", "login", "${ADDRESS}", "--username", "${USERNAME}", "--password", "${PASSWORD}" ]
+#    volumes:
+#      - "/var/run/docker.sock:/var/run/docker.sock"
+#    deploy:
+#      mode: global
+#      labels:
+#        - "swarm.cronjob.enable=true"
+#        - "swarm.cronjob.schedule=0 */30 * * * *"
+#        - "swarm.cronjob.skip-running=false"
+#      restart_policy:
+#        condition: none

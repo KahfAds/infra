@@ -137,7 +137,7 @@ services:
         - traefik.http.middlewares.block-metrics.plugin.blockpath.regex=^/prometheus(.*)
 
   redis:
-    image: redis:5.0
+    image: redis:6.2.1-alpine
 
   celery_worker:
     image: kahfads${ENV}.azurecr.io/ethical-adserver/backend:latest

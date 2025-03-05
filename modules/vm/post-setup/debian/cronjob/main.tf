@@ -15,7 +15,7 @@ resource "null_resource" "create_cronjob" {
   connection {
     host        = var.ssh.host
     user        = var.ssh.user
-    private_key = file(var.ssh.private_key_pem)
+    private_key = var.ssh.private_key_pem
   }
 }
 

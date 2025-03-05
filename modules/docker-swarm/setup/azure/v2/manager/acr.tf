@@ -28,3 +28,23 @@ resource "azurerm_role_assignment" "acr" {
   role_definition_name = "AcrPull"
   scope                = data.azurerm_container_registry.accessible[count.index].id
 }
+
+module "periodic_login_azure_acr" {
+  depends_on = [azurerm_linux_virtual_machine.leader]
+
+  count = length(var.accessible_registries)
+  source = "../../../../../vm/post-setup/debian/cronjob"
+
+  cron_job = {
+    name = "acr-login-${var.accessible_registries[count.index]}"
+    command = "az acr login --name ${var.accessible_registries[count.index]}"
+    run_as_user = "root"
+    schedule = "*/10 * * * *" # every 10 minutes
+  }
+
+  ssh = {
+    host = azurerm_public_ip.primary.ip_address
+    user = local.admin_username
+    private_key_pem = module.ssh_key.private_key_pem
+  }
+}

@@ -128,9 +128,8 @@ locals {
       METABASE_SECRET_KEY           = var.metabase_secret_key
       METABASE_EMBED_KEY            = var.metabase_embed_key
       DATABASE_URL                  = "psql://${local.database_user}:${azurerm_postgresql_flexible_server.this.administrator_password}@${azurerm_postgresql_flexible_server.this.fqdn}:5432/ethicaladserver"
-      REPLICA_DATABASE_URL          = "psql://${local.database_user}:${azurerm_postgresql_flexible_server.this.administrator_password}@${azurerm_postgresql_flexible_server.this.fqdn}:5432/ethicaladserver"
       POSTGRES_HOST                 = azurerm_postgresql_flexible_server.this.fqdn
-      POSTGRES_REPLICA_HOST         = azurerm_postgresql_flexible_server.this.fqdn
+      DB_REPLICAS                   = "psql://${local.database_user}:${azurerm_postgresql_flexible_server.this.administrator_password}@${azurerm_postgresql_flexible_server.this.fqdn}:5432/ethicaladserver"
       POSTGRES_USER                 = local.database_user
       POSTGRES_PASSWORD             = azurerm_postgresql_flexible_server.this.administrator_password
       ROOT_DOMAIN                   = local.root_domain
@@ -144,6 +143,7 @@ locals {
       desired                       = 3
       min                           = 3
       max                           = 3
+      max_parallel_request          = 100
     }))
     monitoring = base64encode(module.monitoring.stack)
     portainer = base64encode(module.portainer.stack)

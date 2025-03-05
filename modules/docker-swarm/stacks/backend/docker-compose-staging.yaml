@@ -2,6 +2,7 @@ volumes:
   local_metabase_data: { }
   local_media: { }
 
+
 x-web-env: &django-env
   environment:
     - DEBUG=False
@@ -11,9 +12,9 @@ x-web-env: &django-env
     - REDIS_URL=redis://redis:6379/0
     - DATABASE_ROUTERS=adserver.router.ReportingRouter,adserver.router.DefaultRouter
     - DATABASE_URL=${DATABASE_URL}
-    - REPLICA_DATABASE_URL=${REPLICA_DATABASE_URL}
+    - DB_REPLICAS=${DB_REPLICAS}
     - METABASE_SITE_URL=https://metabase.${ROOT_DOMAIN}
-    - ADSERVER_ANALYZER_BACKEND="adserver.analyzer.backends.TextacyAnalyzerBackend"
+    - ADSERVER_ANALYZER_BACKEND=""
     - COLUMNS=80
     - ETHICALADS_DJANGO_PORT=5000
     - ALLOWED_HOSTS=app.${ROOT_DOMAIN},admin.${ROOT_DOMAIN}
@@ -66,6 +67,7 @@ services:
         max-file: "3"
     entrypoint: ["/start"]
     command:
+      - "uvicorn"
       - "config.asgi:application"
       - "--host=0.0.0.0"
       - "--port=5000"
@@ -89,9 +91,12 @@ services:
         - traefik.enable=true
         - traefik.docker.network=proxy_channel
         - traefik.http.routers.ads-backend.entrypoints=web,websecure
-        - traefik.http.routers.ads-backend.rule=Host(`app.${ROOT_DOMAIN}`) && (PathPrefix(`/api/v1`) || PathPrefix(`/proxy/view`) || PathPrefix(`/proxy/viewtime`))
-        - traefik.http.routers.ads-backend.middlewares=redirectToHttps@file
+        - traefik.http.routers.ads-backend.rule=Host(`app.${ROOT_DOMAIN}`) && (PathPrefix(`/api/v1`) || PathPrefix(`/proxy/view`) || PathPrefix(`/proxy/viewtime`) || PathPrefix(`/proxy/click`))
+        - traefik.http.routers.ads-backend.middlewares=redirectToHttps@file,ads-backend-ratelimit,ads-backend-parallelism
         - traefik.http.services.ads-backend.loadbalancer.server.port=5000
+        - traefik.http.middlewares.ads-backend-ratelimit.ratelimit.average=400
+        - traefik.http.middlewares.ads-backend-ratelimit.ratelimit.burst=800
+        - traefik.http.middlewares.ads-backend-parallelism.inflightreq.amount=${max_parallel_request}
         - swarm.autoscaler=true
         - swarm.autoscaler.maximum=${max}
         - swarm.autoscaler.minimum=${min}
@@ -141,9 +146,9 @@ services:
     depends_on:
       - redis
     <<: *django-env
-    command: /start-celerybeat
     volumes:
       - /tmp/prometheus
+    command: /start-celerybeat
     deploy:
       labels:
         - logs.collector=loki

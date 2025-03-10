@@ -10,9 +10,14 @@ x-web-env: &django-env
     - IPYTHONDIR=/app/.ipython
     - MEDIA_URL=https://app.${ROOT_DOMAIN}/media/
     - REDIS_URL=redis://redis:6379/0
-    - DATABASE_ROUTERS=adserver.router.ReportingRouter,adserver.router.DefaultRouter
+#    - DATABASE_ROUTERS=adserver.router.ReportingRouter,adserver.router.DefaultRouter
     - DATABASE_URL=${DATABASE_URL}
     - DB_REPLICAS=${DB_REPLICAS}
+    - USE_DB_POOL=True
+    - DB_POOL_MIN_SIZE=8
+    - DB_POOL_MAX_SIZE=200
+    - DB_POOL_TIMEOUT=30
+    - DB_DISABLE_SERVER_SIDE_CURSORS=False
     - METABASE_SITE_URL=https://metabase.${ROOT_DOMAIN}
     - ADSERVER_ANALYZER_BACKEND=""
     - COLUMNS=80
@@ -46,7 +51,6 @@ x-web-env: &django-env
     - SITE_ID=1
     - SECURE_REFERRER_POLICY=origin
     - CSRF_TRUSTED_ORIGINS=https://app.${ROOT_DOMAIN}
-    - DB_POOL_TIMEOUT=30
     - SMTP_HOST=${SMTP_HOST}
     - SMTP_PORT=${SMTP_PORT}
     - SMTP_USER=${SMTP_USER}
@@ -61,7 +65,7 @@ x-web-env: &django-env
 
 services:
   django: &django
-    image: kahfads${ENV}.azurecr.io/ethical-adserver/backend:d9140eabcd03013e80623d462d98cc1422622fad
+    image: kahfads${ENV}.azurecr.io/ethical-adserver/backend:latest
     logging:
       driver: json-file
       options:
@@ -75,6 +79,10 @@ services:
       - "--port=5000"
       - "--lifespan=off"
       - "--workers=4"
+      - "--loop=uvloop"
+      - "--timeout-graceful-shutdown=5"
+      - "--limit-max-requests=5000"
+      - "--timeout-keep-alive=5"
     volumes:
       - local_media:/app/media
       - /tmp/prometheus
@@ -102,11 +110,12 @@ services:
         - traefik.enable=true
         - traefik.docker.network=proxy_channel
         - traefik.http.routers.ads-backend.entrypoints=web,websecure
-        - traefik.http.routers.ads-backend.rule=Host(`app.${ROOT_DOMAIN}`) && (PathPrefix(`/api/v1`) || PathPrefix(`/proxy/view`) || PathPrefix(`/proxy/viewtime`) || PathPrefix(`/proxy/click`))
-        - traefik.http.routers.ads-backend.middlewares=redirectToHttps@file,ads-backend-ratelimit,ads-backend-parallelism
+        - traefik.http.routers.ads-backend.rule=Host(`app.${ROOT_DOMAIN}`)
+        - traefik.http.routers.ads-backend.middlewares=redirectToHttps@file,block-metrics,ads-backend-ratelimit,ads-backend-parallelism
         - traefik.http.services.ads-backend.loadbalancer.server.port=5000
-        - traefik.http.middlewares.ads-backend-ratelimit.ratelimit.average=400
-        - traefik.http.middlewares.ads-backend-ratelimit.ratelimit.burst=800
+        - traefik.http.middlewares.block-metrics.plugin.blockpath.regex=^/prometheus(.*)
+        - traefik.http.middlewares.ads-backend-ratelimit.ratelimit.average=600
+        - traefik.http.middlewares.ads-backend-ratelimit.ratelimit.burst=1000
         - traefik.http.middlewares.ads-backend-parallelism.inflightreq.amount=${max_parallel_request}
         - swarm.autoscaler=true
         - swarm.autoscaler.maximum=${max}
@@ -139,7 +148,7 @@ services:
         - traefik.http.middlewares.block-metrics.plugin.blockpath.regex=^/prometheus(.*)
 
   celery_worker:
-    image: kahfads${ENV}.azurecr.io/ethical-adserver/backend:d9140eabcd03013e80623d462d98cc1422622fad
+    image: kahfads${ENV}.azurecr.io/ethical-adserver/backend:latest
     depends_on:
       - redis
     <<: *django-env
@@ -151,7 +160,7 @@ services:
         - logs.collector=loki
 
   celery_beat:
-    image: kahfads${ENV}.azurecr.io/ethical-adserver/backend:d9140eabcd03013e80623d462d98cc1422622fad
+    image: kahfads${ENV}.azurecr.io/ethical-adserver/backend:latest
     depends_on:
       - redis
     <<: *django-env

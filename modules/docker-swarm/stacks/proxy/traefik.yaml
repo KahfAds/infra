@@ -19,11 +19,17 @@ entryPoints:
     address: ":8080"
   web:
     address: ":80"
+    transport:
+      respondingTimeouts:
+        idleTimeout: 1
   websecure:
     address: ":443"
     http:
       tls:
         certResolver: letsEncrypt
+    transport:
+      respondingTimeouts:
+        idleTimeout: 1
 
 experimental:
   plugins:

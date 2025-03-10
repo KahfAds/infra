@@ -140,9 +140,9 @@ locals {
       SMTP_PASSWORD                 = var.smtp.password
       ADMINS                        = local.error_notification_admins
       SERVER_EMAIL                  = local.server_email
-      desired                       = 3
-      min                           = 3
-      max                           = 3
+      desired                       = 2
+      min                           = 2
+      max                           = 2
       max_parallel_request          = 100
     }))
     monitoring = base64encode(module.monitoring.stack)

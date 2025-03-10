@@ -1,6 +1,6 @@
 locals {
   databases = {
-    master = "postgres://${local.database_user}:${azurerm_postgresql_flexible_server.this.administrator_password}@${azurerm_postgresql_flexible_server.this.fqdn}:6432"
+    master = "postgres://${local.database_user}:${azurerm_postgresql_flexible_server.this.administrator_password}@${azurerm_postgresql_flexible_server.this.fqdn}:5432"
   }
   docker_configs = {
     loki = {
@@ -130,9 +130,9 @@ locals {
       SERVER_EMAIL                  = var.sender_email
       METABASE_SECRET_KEY           = var.metabase_secret_key
       METABASE_EMBED_KEY            = var.metabase_embed_key
-      DATABASE_URL                  = "psql://${local.database_user}:${azurerm_postgresql_flexible_server.this.administrator_password}@${azurerm_postgresql_flexible_server.this.fqdn}:6432/ethicaladserver?sslmode=require" #6432 pgbouncer https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-pgbouncer#switching-your-application-to-use-pgbouncer
+      DATABASE_URL                  = "psql://${local.database_user}:${azurerm_postgresql_flexible_server.this.administrator_password}@${azurerm_postgresql_flexible_server.this.fqdn}:5432/ethicaladserver?sslmode=require" #6432 pgbouncer https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-pgbouncer#switching-your-application-to-use-pgbouncer
       POSTGRES_HOST                 = azurerm_postgresql_flexible_server.this.fqdn
-      DB_REPLICAS                   = join(",", formatlist("psql://${local.database_user}:${azurerm_postgresql_flexible_server.this.administrator_password}@%s:6432/ethicaladserver?sslmode=require", module.postgres_replicas.endpoints))
+      DB_REPLICAS                   = join(",", formatlist("psql://${local.database_user}:${azurerm_postgresql_flexible_server.this.administrator_password}@%s:5432/ethicaladserver?sslmode=require", module.postgres_replicas.endpoints))
       POSTGRES_USER                 = local.database_user
       POSTGRES_PASSWORD             = azurerm_postgresql_flexible_server.this.administrator_password
       ROOT_DOMAIN                   = local.root_domain
@@ -146,7 +146,7 @@ locals {
       desired                       = 8
       min                           = 8
       max                           = 8
-      max_parallel_request          = 100
+      max_parallel_request          = 400
     }))
     monitoring = base64encode(module.monitoring.stack)
     portainer = base64encode(module.portainer.stack)

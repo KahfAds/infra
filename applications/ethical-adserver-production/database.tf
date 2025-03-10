@@ -47,7 +47,7 @@ resource "azurerm_postgresql_flexible_server" "this" {
   administrator_login    = local.database_user
   administrator_password = random_password.database.result
 
-  sku_name   = "GP_Standard_D4ds_v5"
+  sku_name   = "GP_Standard_D16ds_v5"
   version    = "16"
   storage_mb = 65536
 
@@ -76,6 +76,7 @@ module "master_server_parameters" {
     id = azurerm_postgresql_flexible_server.this.id
     sku_name = azurerm_postgresql_flexible_server.this.sku_name
   }
+  enable_pgbouncer = false
 }
 
 module "postgres_replicas" {
@@ -90,7 +91,7 @@ module "postgres_replicas" {
     dns_zone_id = azurerm_postgresql_flexible_server.this.private_dns_zone_id
     zone = azurerm_postgresql_flexible_server.this.zone
   }
-  replica_count = 2
+  replica_count = 0
   resource_group = {
     name = azurerm_resource_group.this.name
     location = azurerm_resource_group.this.location

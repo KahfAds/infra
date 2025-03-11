@@ -81,7 +81,6 @@ services:
       - "--workers=4"
       - "--loop=uvloop"
       - "--timeout-graceful-shutdown=5"
-      - "--limit-max-requests=5000"
       - "--timeout-keep-alive=5"
     volumes:
       - local_media:/app/media

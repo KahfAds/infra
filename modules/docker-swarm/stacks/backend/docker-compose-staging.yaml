@@ -14,8 +14,8 @@ x-web-env: &django-env
     - DATABASE_URL=${DATABASE_URL}
     - DB_REPLICAS=${DB_REPLICAS}
     - USE_DB_POOL=True
-    - DB_POOL_MIN_SIZE=20
-    - DB_POOL_MAX_SIZE=40
+    - DB_POOL_MIN_SIZE=8
+    - DB_POOL_MAX_SIZE=200
     - DB_POOL_TIMEOUT=30
     - METABASE_SITE_URL=https://metabase.${ROOT_DOMAIN}
     - ADSERVER_ANALYZER_BACKEND=""
@@ -74,11 +74,10 @@ services:
       - "config.asgi:application"
       - "--host=0.0.0.0"
       - "--port=5000"
-#      - "--lifespan=off"
+      - "--lifespan=on"
       - "--workers=2"
       - "--loop=uvloop"
       - "--timeout-graceful-shutdown=5"
-      - "--limit-max-requests=5000"
       - "--timeout-keep-alive=5"
     volumes:
       - local_media:/app/media
@@ -115,7 +114,7 @@ services:
       - "config.asgi:application"
       - "--host=0.0.0.0"
       - "--port=5000"
-      - "--lifespan=off"
+      - "--lifespan=on"
       - "--workers=1"
       - "--loop=uvloop"
     deploy:

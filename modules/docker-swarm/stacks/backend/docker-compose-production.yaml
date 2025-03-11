@@ -123,20 +123,23 @@ services:
 
   django_low_traffic:
     <<: *django
+    command:
+      - "uvicorn"
+      - "config.asgi:application"
+      - "--host=0.0.0.0"
+      - "--port=5000"
+      - "--lifespan=off"
+      - "--workers=1"
+      - "--loop=uvloop"
     deploy:
       resources:
         reservations:
-          cpus: '\"4.0\"'
-          memory: 8196M
+          cpus: '\"1.0\"'
+          memory: 2048M
       update_config:
         order: start-first
       mode: replicated
       replicas: 1
-      placement:
-        constraints:
-          - "node.role == worker"
-        preferences:
-          - spread: node.id
       labels:
         - logs.collector=loki
         - traefik.enable=true

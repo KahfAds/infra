@@ -2,67 +2,71 @@ volumes:
   local_metabase_data: { }
   local_media: { }
 
+x-django-env: &django-env
+  APP_ENV: "staging"
+  DEBUG: "false"
+  USE_DOCKER: "true"
+  IPYTHONDIR: "/app/.ipython"
+  MEDIA_URL: "https://app.${ROOT_DOMAIN}/media/"
+  REDIS_URL: "redis://redis:6379/0"
+  #  DATABASE_ROUTERS: adserver.router.ReportingRouter,adserver.router.DefaultRouter
+  DATABASE_URL: "${DATABASE_URL}"
+  DB_REPLICAS: "${DB_REPLICAS}"
+  USE_DB_POOL: "true"
+  DB_POOL_MIN_SIZE: 100
+  DB_POOL_MAX_SIZE: 200
+  DB_POOL_TIMEOUT: 30
+  METABASE_SITE_URL: "https://metabase.${ROOT_DOMAIN}"
+  ADSERVER_ANALYZER_BACKEND: ""
+  COLUMNS: 80
+  ETHICALADS_DJANGO_PORT: 5000
+  ALLOWED_HOSTS: "app.${ROOT_DOMAIN},portal.${ROOT_DOMAIN}"
+  SECRET_KEY: "${SECRET_KEY}"
+  ADSERVER_HTTPS: "true"
+  DJANGO_SETTINGS_MODULE: "config.settings.production"
+  SENDGRID_API_KEY: "${SENDGRID_API_KEY}"
+  DEFAULT_FILE_STORAGE: "config.storage.AzureCDNFileStorage"
+  DEFAULT_FILE_STORAGE_HOSTNAME: "media.${ROOT_DOMAIN}"
+  AZURE_ACCOUNT_NAME: "${AZURE_ACCOUNT_NAME}"
+  AZURE_ACCOUNT_KEY: "${AZURE_ACCOUNT_KEY}"
+  AZURE_CONTAINER: "${AZURE_CONTAINER}"
+  SERVER_EMAIL: "${SERVER_EMAIL}"
+  METABASE_SECRET_KEY: "${METABASE_EMBED_KEY}"
+  ADSERVER_GEOIP_MIDDLEWARE: "adserver.middleware.CloudflareGeoIpMiddleware"
+  ADSERVER_IPADDRESS_MIDDLEWARE: "adserver.middleware.CloudflareIpAddressMiddleware"
+  PUBLISHER_GEO_REPORT: 28
+  PUBLISHER_FIGURES: 2
+  PUBLISHER_KEYWORD_REPORT: 30
+  ALL_ADVERTISERS_BREAKDOWN: 31
+  SENTRY_DSN: "https://6fee6a733a64437afa77cfd7344fd131@o4508199963459584.ingest.de.sentry.io/4508199965032528"
+  ADVERTISER_GEO_REPORT: 37
+  ADVERTISER_FIGURES: 3
+  ADVERTISER_PER_AD_TABLE: 39
+  ADVERTISER_KEYWORD_CTR: 41
+  ADVERTISER_TOPIC_PERFORMANCE: 42
+  ADSERVER_ETHICALADS_BRANDING: "true"
+  CORS_ALLOW_ALL_ORIGINS: "true"
+  SITE_ID: 1
+  SECURE_REFERRER_POLICY: "origin"
+  CSRF_TRUSTED_ORIGINS: "https://app.${ROOT_DOMAIN}"
+  SMTP_HOST: "${SMTP_HOST}"
+  SMTP_PORT: "${SMTP_PORT}"
+  SMTP_USER: "${SMTP_USER}"
+  SMTP_PASSWORD: "${SMTP_PASSWORD}"
+  PROMETHEUS_EXPORT_MIGRATIONS: "false"
+  SECURE_SSL_REDIRECT: "false"
+  PROMETHEUS_MULTIPROC_DIR: "/tmp/prometheus"
+  ADSERVER_VIEW_RATELIMITS: ""
+  ADSERVER_CLICK_RATELIMITS: ""
 
-x-web-env: &django-env
-  environment:
-    - DEBUG=False
-    - USE_DOCKER=true
-    - IPYTHONDIR=/app/.ipython
-    - MEDIA_URL=https://app.${ROOT_DOMAIN}/media/
-    - REDIS_URL=redis://redis:6379/0
-#    - DATABASE_ROUTERS=adserver.router.ReportingRouter,adserver.router.DefaultRouter
-    - DATABASE_URL=${DATABASE_URL}
-    - DB_REPLICAS=${DB_REPLICAS}
-    - USE_DB_POOL=True
-    - DB_POOL_MIN_SIZE=8
-    - DB_POOL_MAX_SIZE=200
-    - DB_POOL_TIMEOUT=30
-    - METABASE_SITE_URL=https://metabase.${ROOT_DOMAIN}
-    - ADSERVER_ANALYZER_BACKEND=""
-    - COLUMNS=80
-    - ETHICALADS_DJANGO_PORT=5000
-    - ALLOWED_HOSTS=app.${ROOT_DOMAIN},portal.${ROOT_DOMAIN}
-    - SECRET_KEY=${SECRET_KEY}
-    - ADSERVER_HTTPS=True
-    - DJANGO_SETTINGS_MODULE=config.settings.production
-    - SENDGRID_API_KEY=${SENDGRID_API_KEY}
-    - DEFAULT_FILE_STORAGE=config.storage.AzureCDNFileStorage
-    - DEFAULT_FILE_STORAGE_HOSTNAME=media.${ROOT_DOMAIN}
-    - AZURE_ACCOUNT_NAME=${AZURE_ACCOUNT_NAME}
-    - AZURE_ACCOUNT_KEY=${AZURE_ACCOUNT_KEY}
-    - AZURE_CONTAINER=${AZURE_CONTAINER}
-    - SERVER_EMAIL=${SERVER_EMAIL}
-    - METABASE_SECRET_KEY=${METABASE_EMBED_KEY}
-    - ADSERVER_GEOIP_MIDDLEWARE=adserver.middleware.CloudflareGeoIpMiddleware
-    - ADSERVER_IPADDRESS_MIDDLEWARE=adserver.middleware.CloudflareIpAddressMiddleware
-    - PUBLISHER_GEO_REPORT=28
-    - PUBLISHER_FIGURES=2
-    - PUBLISHER_KEYWORD_REPORT=30
-    - ALL_ADVERTISERS_BREAKDOWN=31
-    - SENTRY_DSN=https://6fee6a733a64437afa77cfd7344fd131@o4508199963459584.ingest.de.sentry.io/4508199965032528
-    - ADVERTISER_GEO_REPORT=37
-    - ADVERTISER_FIGURES=3
-    - ADVERTISER_PER_AD_TABLE=39
-    - ADVERTISER_KEYWORD_CTR=41
-    - ADVERTISER_TOPIC_PERFORMANCE=42
-    - ADSERVER_ETHICALADS_BRANDING=True
-    - CORS_ALLOW_ALL_ORIGINS=true
-    - SITE_ID=1
-    - SECURE_REFERRER_POLICY=origin
-    - CSRF_TRUSTED_ORIGINS=https://app.${ROOT_DOMAIN}
-    - SMTP_HOST=${SMTP_HOST}
-    - SMTP_PORT=${SMTP_PORT}
-    - SMTP_USER=${SMTP_USER}
-    - SMTP_PASSWORD=${SMTP_PASSWORD}
-    - PROMETHEUS_EXPORT_MIGRATIONS=False
-    - SECURE_SSL_REDIRECT=False
-    - PROMETHEUS_MULTIPROC_DIR=/tmp/prometheus
+x-web-env: &django-settings
+  image: kahfads${ENV}.azurecr.io/ethical-adserver/backend:latest
   networks:
     - default
 
 services:
   django: &django
-    image: kahfads${ENV}.azurecr.io/ethical-adserver/backend:latest
+    <<: *django-settings
     logging:
       driver: json-file
       options:
@@ -82,7 +86,8 @@ services:
     volumes:
       - local_media:/app/media
       - /tmp/prometheus
-    <<: *django-env
+    environment:
+      <<: *django-env
     networks:
       - default
       - monitoring_channel
@@ -132,29 +137,30 @@ services:
         - traefik.http.services.ads-backend-click.loadbalancer.server.port=5000
         - traefik.http.middlewares.block-metrics.plugin.blockpath.regex=^/prometheus(.*)
 
-  celery_worker:
-    image: kahfads${ENV}.azurecr.io/ethical-adserver/backend:latest
+  celery_worker: &celery_worker
+    <<: *django-settings
     depends_on:
       - redis
-    <<: *django-env
-    command: /start-celeryworker
+    environment:
+      <<: *django-env
+      USE_DB_POOL: "false"
+      DB_CONN_MAX_AGE: 3600
+    command: >
+      celery -A config.celery_app worker -l INFO -Q celery,analyzer,priority -c 1 -O fair
     volumes:
       - /tmp/prometheus
     deploy:
       labels:
         - logs.collector=loki
 
+  celery_worker_batch_impressions:
+    <<: *celery_worker
+    command: >
+      celery -A config.celery_app worker -l INFO -Q batch_impressions -c 2 -O fair --prefetch-multiplier=10
+
   celery_beat:
-    image: kahfads${ENV}.azurecr.io/ethical-adserver/backend:latest
-    depends_on:
-      - redis
-    <<: *django-env
-    volumes:
-      - /tmp/prometheus
+    <<: *celery_worker
     command: /start-celerybeat
-    deploy:
-      labels:
-        - logs.collector=loki
 
   celery_exporter:
     image: danihodovic/celery-exporter

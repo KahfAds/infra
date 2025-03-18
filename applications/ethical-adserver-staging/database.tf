@@ -47,7 +47,7 @@ resource "azurerm_postgresql_flexible_server" "this" {
   administrator_login    = local.database_user
   administrator_password = random_password.database.result
 
-  sku_name   = "B_Standard_B1ms"
+  sku_name   = "B_Standard_B4ms"
   version    = "16"
   storage_mb = 65536
 

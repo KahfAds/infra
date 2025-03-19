@@ -13,7 +13,7 @@ common:
   replication_factor: 1
 
 frontend:
-  address: 0.0.0.0
+  address: "0.0.0.0"
   scheduler_address: "0.0.0.0:9095"
 
 limits_config:

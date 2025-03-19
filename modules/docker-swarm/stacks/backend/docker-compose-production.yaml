@@ -58,8 +58,7 @@ x-django-env: &django-env
   PROMETHEUS_EXPORT_MIGRATIONS: "false"
   SECURE_SSL_REDIRECT: "false"
   PROMETHEUS_MULTIPROC_DIR: "/tmp/prometheus"
-  ADSERVER_VIEW_RATELIMITS: ""
-  ADSERVER_CLICK_RATELIMITS: ""
+  ADSERVER_IMPRESSION_BACKEND: "adserver.decisionengine.backends.ImpressionBackendV2"
 
 x-web-env: &django-settings
   image: kahfads${ENV}.azurecr.io/ethical-adserver/backend:latest
@@ -172,14 +171,14 @@ services:
   celery_worker_batch_impressions:
     <<: *celery_worker
     command: >
-      celery -A config.celery_app worker -l INFO -Q batch_impressions -c 4 -O fair
+      celery -A config.celery_app worker -l INFO -Q batch_impressions -c 12 --prefetch-multiplier=1000 --max-tasks-per-child=10000
     deploy:
       labels:
         - logs.collector=loki
       resources:
         reservations:
-          cpus: '\"2.0\"'
-          memory: 2048M
+          cpus: '\"4.0\"'
+          memory: 8196M
 
   celery_beat:
     <<: *celery_worker
@@ -202,7 +201,8 @@ services:
       --maxmemory 6gb
       --maxmemory-policy allkeys-lru
     sysctls:
-      - net.core.somaxconn=65535
+      net.core.somaxconn: 65535
+      net.ipv4.tcp_max_syn_backlog: 65535
     deploy:
       resources:
         reservations:

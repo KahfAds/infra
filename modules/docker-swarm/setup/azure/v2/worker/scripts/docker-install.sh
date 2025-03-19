@@ -1,6 +1,19 @@
 #!/bin/bash
+# 1️⃣ Increase max open files (file descriptors)
+echo '* soft nofile 1000000' | sudo tee -a /etc/security/limits.conf
+echo '* hard nofile 1000000' | sudo tee -a /etc/security/limits.conf
+echo 'fs.file-max=2097152' | sudo tee -a /etc/sysctl.conf
+
+# 2️⃣ Tune TCP backlog & networking
+echo 'net.core.somaxconn=65535' | sudo tee -a /etc/sysctl.conf
+echo 'net.core.netdev_max_backlog=65535' | sudo tee -a /etc/sysctl.conf
+echo 'net.ipv4.tcp_max_syn_backlog=65535' | sudo tee -a /etc/sysctl.conf
+echo 'net.ipv4.tcp_fin_timeout=15' | sudo tee -a /etc/sysctl.conf
+echo 'net.ipv4.tcp_tw_reuse=1' | sudo tee -a /etc/sysctl.conf
+sudo sysctl -p
 
 # Install Docker
+echo '{ "metrics-addr": "0.0.0.0:9323", "experimental": true, "default-ulimits": { "nofile": { "Name": "nofile","Soft": 65535,"Hard": 65535 } }, "log-driver": "json-file", "log-opts": { "max-size": "100m", "max-file": "3" } }' | sudo tee /etc/docker/daemon.json
 sudo apt-get update && sudo apt-get install -y docker.io uidmap jq nfs-common
 sudo loginctl enable-linger azure-user
 

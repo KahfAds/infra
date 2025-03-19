@@ -25,3 +25,15 @@ module "swarm_cluster" {
   }
   manager_replica = 1
 }
+
+locals {
+  ssh_machines =[ for machine in module.swarm_cluster.ssh.virtual_machines: {
+
+  }]
+}
+
+module "redis_vm_optimizations" {
+  count = module.swarm_cluster.ssh.ip_addresses
+  source = "../../modules/vm/post-setup/debian/redis-tuning"
+
+}

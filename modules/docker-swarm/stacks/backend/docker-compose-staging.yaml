@@ -59,6 +59,7 @@ x-django-env: &django-env
   PROMETHEUS_MULTIPROC_DIR: "/tmp/prometheus"
   ADSERVER_VIEW_RATELIMITS: ""
   ADSERVER_CLICK_RATELIMITS: ""
+  ADSERVER_IMPRESSION_BACKEND: "adserver.decisionengine.backends.ImpressionBackendV2"
 
 x-web-env: &django-settings
   image: kahfads${ENV}.azurecr.io/ethical-adserver/backend:latest
@@ -157,7 +158,12 @@ services:
   celery_worker_batch_impressions:
     <<: *celery_worker
     command: >
-      celery -A config.celery_app worker -l INFO -Q batch_impressions -c 2 -O fair --prefetch-multiplier=10
+      celery -A config.celery_app worker -l INFO -Q batch_impressions -c 4 -O fair --prefetch-multiplier=150
+    deploy:
+      labels:
+        - logs.collector=loki
+      mode: replicated
+      replicas: 1
 
   celery_beat:
     <<: *celery_worker

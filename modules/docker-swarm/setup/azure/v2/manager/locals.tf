@@ -27,7 +27,7 @@ locals {
   docker_install = [
     # Step 1: Create the cert directory
     "sudo mkdir -p /etc/docker/certs",
-    "echo '{ \"metrics-addr\" : \"0.0.0.0:9323\", \"experimental\" : true}' | sudo tee /etc/docker/daemon.json",
+    "echo '{ \"metrics-addr\": \"0.0.0.0:9323\",\"experimental\": true,\"default-ulimits\": { \"nofile\": { \"Name\": \"nofile\",\"Soft\": 65535,\"Hard\": 65535}},\"log-driver\": \"json-file\",\"log-opts\": { \"max-size\": \"100m\",\"max-file\": \"3\"}}' | sudo tee /etc/docker/daemon.json",
     # Step 1: Write CA certificate to the correct directory
     "echo '${tls_self_signed_cert.ca_cert.cert_pem}' | sudo tee /etc/docker/certs/ca.pem",
     # Step 2: Write server certificate

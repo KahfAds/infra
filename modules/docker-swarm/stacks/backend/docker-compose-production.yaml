@@ -58,6 +58,7 @@ x-django-env: &django-env
   PROMETHEUS_EXPORT_MIGRATIONS: "false"
   SECURE_SSL_REDIRECT: "false"
   PROMETHEUS_MULTIPROC_DIR: "/tmp/prometheus"
+  TIME_ZONE: "Asia/Dhaka"
   ADSERVER_IMPRESSION_BACKEND: "adserver.decisionengine.backends.ImpressionBackendV2"
 
 x-web-env: &django-settings
@@ -173,12 +174,14 @@ services:
     command: >
       celery -A config.celery_app worker -l INFO -Q batch_impressions -c 12 --prefetch-multiplier=1000 --max-tasks-per-child=10000
     deploy:
+      mode: replicated
+      replicas: 4
       labels:
         - logs.collector=loki
       resources:
         reservations:
-          cpus: '\"4.0\"'
-          memory: 8196M
+          cpus: '\"2.0\"'
+          memory: 5120M
 
   celery_beat:
     <<: *celery_worker

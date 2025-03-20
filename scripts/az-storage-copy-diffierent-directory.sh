@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Variables
-SOURCE_STORAGE_ACCOUNT="mahfilstorage"
-SOURCE_SAS_TOKEN="sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2025-03-11T18:46:25Z&st=2025-03-11T10:46:25Z&spr=https&sig=RZ15PlYV47RmLMKTyFzQfguVOgLVFXOTdgGbT%2BGsevY%3D"
+SOURCE_STORAGE_ACCOUNT="mahfilstorageprod"
+SOURCE_SAS_TOKEN="sv=2024-11-04&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2025-03-20T02:32:11Z&st=2025-03-19T18:32:11Z&spr=https&sig=lk5YyqD2siPNjI6zn5VUmh%2FxK1Sr2CXsNNArm3jBwoo%3D"
 
-DEST_STORAGE_ACCOUNT="mahfilstoragedev"
-DEST_SAS_TOKEN="sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2025-03-11T18:47:23Z&st=2025-03-11T10:47:23Z&spr=https&sig=vESP45qv%2F1xcjAwJ9PnA6xrFZ37Enz9fKM2elNgM4bw%3D"
+DEST_STORAGE_ACCOUNT="mahfilstorageprd"
+DEST_SAS_TOKEN="sv=2024-11-04&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2025-03-20T02:33:39Z&st=2025-03-19T18:33:39Z&spr=https&sig=o0nOtQ34LXSg8NQKk4q%2BWM%2Bv95rX4C0gdX9%2Fx00GL2Y%3D"
 
 # Function to create a container in the destination account
 create_container() {

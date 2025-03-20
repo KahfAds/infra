@@ -203,6 +203,9 @@ services:
     sysctls:
       net.core.somaxconn: 65535
       net.ipv4.tcp_max_syn_backlog: 65535
+    networks:
+      - default
+      - monitoring_channel
     deploy:
       resources:
         reservations:

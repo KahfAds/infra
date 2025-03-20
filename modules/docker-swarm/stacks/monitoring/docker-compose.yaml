@@ -38,6 +38,7 @@ services:
     networks:
       - default
       - proxy_channel
+      - monitoring_channel
     deploy:
       replicas: 1
       restart_policy:

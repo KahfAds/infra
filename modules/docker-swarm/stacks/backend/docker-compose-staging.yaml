@@ -158,7 +158,7 @@ services:
   celery_worker_batch_impressions:
     <<: *celery_worker
     command: >
-      celery -A config.celery_app worker -l INFO -Q batch_impressions -c 4 -O fair --prefetch-multiplier=150
+      celery -A config.celery_app worker -l INFO -Q batch_impressions -c 4 --prefetch-multiplier=1000 --max-tasks-per-child=10000
     deploy:
       labels:
         - logs.collector=loki
@@ -179,6 +179,8 @@ services:
 
   redis:
     image: redis:6.2.1
+    networks:
+      - default
     command: >
       redis-server
       --maxclients 50000

@@ -116,6 +116,7 @@ module "proxy" {
   nfs_endpoint        = module.nfs.endpoint
   root_domain         = local.root_domain
   static_config_name  = docker_config.this[local.docker_configs.tarefik_static.name].name
+  replicas            = 3
 }
 
 locals {

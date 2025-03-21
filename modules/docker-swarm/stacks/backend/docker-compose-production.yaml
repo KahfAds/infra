@@ -58,6 +58,8 @@ x-django-env: &django-env
   PROMETHEUS_EXPORT_MIGRATIONS: "false"
   SECURE_SSL_REDIRECT: "false"
   PROMETHEUS_MULTIPROC_DIR: "/tmp/prometheus"
+  ADSERVER_VIEW_RATELIMITS: ""
+  ADSERVER_CLICK_RATELIMITS: ""
   TIME_ZONE: "Asia/Dhaka"
   ADSERVER_IMPRESSION_BACKEND: "adserver.decisionengine.backends.ImpressionBackendV2"
 

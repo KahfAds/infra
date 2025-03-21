@@ -43,7 +43,7 @@ services:
         mode: ingress
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: ${replicas}
       placement:
         constraints:
           - node.role == manager

@@ -18,5 +18,11 @@ output "stack" {
     nfs_endpoint = var.nfs_endpoint
     nfs_device = var.nfs_device
     network_name = var.network_name
+    replicas = var.replicas
   })
+}
+
+variable "replicas" {
+  default = 1
+  type = number
 }

@@ -148,6 +148,8 @@ locals {
       min                           = 6
       max                           = 6
       max_parallel_request          = 600
+      nfs_device                    = "${module.nfs.account}/${azurerm_storage_container.redis_data.name}"
+      nfs_endpoint                  = module.nfs.endpoint
     }))
     monitoring = base64encode(module.monitoring.stack)
     portainer = base64encode(module.portainer.stack)

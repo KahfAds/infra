@@ -71,6 +71,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "node" {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.this.id]
   }
+
+  timeouts {
+    update = "120m"
+  }
 }
 
 resource "azurerm_role_assignment" "this" {

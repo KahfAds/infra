@@ -1,6 +1,12 @@
 volumes:
   local_metabase_data: { }
   local_media: { }
+  redis_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "nfsvers=3,addr=${nfs_endpoint},nolock,soft,rw"
+      device: ":/${nfs_device}"
 
 
 x-django-env: &django-env
@@ -102,7 +108,8 @@ services:
           cpus: '\"4.0\"'
           memory: 8196M
       update_config:
-        order: start-first
+        order: stop-first
+        parallelism: 1
       mode: replicated
       replicas: ${desired}
       placement:
@@ -205,6 +212,10 @@ services:
       --tcp-backlog 65535
       --maxmemory 6gb
       --maxmemory-policy allkeys-lru
+      --save 60 1 
+      --loglevel warning
+    volumes:
+      - redis_data:/data
     sysctls:
       net.core.somaxconn: 65535
       net.ipv4.tcp_max_syn_backlog: 65535

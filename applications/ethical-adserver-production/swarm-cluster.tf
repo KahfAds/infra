@@ -19,9 +19,9 @@ module "swarm_cluster" {
     prefix = module.core_network.vnet_address_space[0]
   }
   worker_scale = {
-    min     = 8
-    max     = 8
-    desired = 8
+    min     = 9
+    max     = 9
+    desired = 9
   }
   manager_replica       = 2
   create_docker_context = true

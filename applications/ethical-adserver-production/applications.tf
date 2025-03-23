@@ -144,9 +144,9 @@ locals {
       SMTP_PASSWORD                 = var.smtp.password
       ADMINS                        = local.error_notification_admins
       SERVER_EMAIL                  = local.server_email
-      desired                       = 6
-      min                           = 6
-      max                           = 6
+      desired                       = 7
+      min                           = 7
+      max                           = 7
       max_parallel_request          = 600
       nfs_device                    = "${module.nfs.account}/${azurerm_storage_container.redis_data.name}"
       nfs_endpoint                  = module.nfs.endpoint

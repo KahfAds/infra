@@ -126,7 +126,7 @@ services:
         - traefik.http.routers.ads-backend.middlewares=redirectToHttps@file,block-metrics,ads-backend-ratelimit,ads-backend-parallelism
         - traefik.http.services.ads-backend.loadbalancer.server.port=5000
         - traefik.http.middlewares.block-metrics.plugin.blockpath.regex=^/prometheus(.*)
-        - traefik.http.middlewares.ads-backend-ratelimit.ratelimit.average=600
+        - traefik.http.middlewares.ads-backend-ratelimit.ratelimit.average=700
         - traefik.http.middlewares.ads-backend-ratelimit.ratelimit.burst=1000
         - traefik.http.middlewares.ads-backend-parallelism.inflightreq.amount=${max_parallel_request}
         - swarm.autoscaler=true
@@ -210,7 +210,7 @@ services:
       redis-server
       --maxclients 50000
       --tcp-backlog 65535
-      --maxmemory 6gb
+      --maxmemory 8gb
       --maxmemory-policy allkeys-lru
       --save 60 1 
       --loglevel warning
